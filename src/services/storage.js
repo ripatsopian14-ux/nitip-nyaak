@@ -1,15 +1,33 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Support all possible Vercel / Vite env var names
+// Support all possible Vercel / Vite env var names, with localStorage custom config fallback
+const customConfig = (() => {
+  try {
+    const saved = localStorage.getItem('nitip_supabase_config')
+    return saved ? JSON.parse(saved) : {}
+  } catch (_) {
+    return {}
+  }
+})()
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
                     import.meta.env.SUPABASE_URL || 
-                    import.meta.env.NEXT_PUBLIC_SUPABASE_URL
+                    import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+                    customConfig.url || ''
 
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
                        import.meta.env.SUPABASE_ANON_KEY || 
-                       import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                       import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+                       customConfig.key || ''
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+export function saveCustomSupabaseConfig(url, key) {
+  try {
+    localStorage.setItem('nitip_supabase_config', JSON.stringify({ url, key }))
+    window.location.reload()
+  } catch (_) {}
+}
 
 if (isSupabaseConfigured) {
   console.log("✅ Supabase Terhubung:", supabaseUrl)
@@ -103,6 +121,36 @@ export async function apiGetStores() {
       if (error) {
         console.error("Supabase stores fetch error:", error)
       } else if (data) {
+        // Jika di Supabase masih kosong tapi di laptop ini ada lapak lokal, otomatis upload ke Supabase!
+        if (data.length === 0) {
+          const localStores = getLocalStores()
+          if (localStores && localStores.length > 0) {
+            console.log("Auto-uploading local stores to Supabase...", localStores)
+            for (const s of localStores) {
+              await supabase.from('stores').upsert({
+                id: s.id,
+                name: s.name,
+                owner_name: s.ownerName,
+                category: s.category || "Kuliner",
+                delivery_date: s.deliveryDate,
+                delivery_time: s.deliveryTime,
+                cutoff_time: s.cutoffTime,
+                pickup_location: s.pickupLocation,
+                seller_phone: s.sellerPhone,
+                payment_name: s.paymentName,
+                bank_name: s.bankName,
+                bank_number: s.bankNumber,
+                qris_nmid: s.qrisNmid,
+                admin_pin: s.adminPin || "1234",
+                icon: s.icon || "🍲",
+                badge: s.badge || "",
+                is_open: s.isOpen ?? true
+              })
+            }
+            return localStores
+          }
+        }
+
         const mapped = data.map(s => ({
           id: s.id,
           slug: s.id,
@@ -187,6 +235,24 @@ export async function apiGetMenus() {
       if (error) {
         console.error("Supabase menus fetch error:", error)
       } else if (data) {
+        if (data.length === 0) {
+          const localMenus = getLocalMenus()
+          if (localMenus && localMenus.length > 0) {
+            for (const m of localMenus) {
+              await supabase.from('menu_items').insert({
+                store_id: m.storeId,
+                name: m.name,
+                description: m.desc,
+                price: m.price,
+                quota: m.quota,
+                icon: m.icon || '🍱',
+                badge: m.badge || '',
+                is_active: true
+              })
+            }
+            return localMenus
+          }
+        }
         const mapped = data.map(m => ({
           id: m.id,
           storeId: m.store_id,

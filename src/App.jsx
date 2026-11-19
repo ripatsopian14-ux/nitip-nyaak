@@ -6,6 +6,7 @@ import CheckoutModal from './components/CheckoutModal'
 import AddMenuModal from './components/AddMenuModal'
 import AdminLoginModal from './components/AdminLoginModal'
 import RegisterStoreModal from './components/RegisterStoreModal'
+import CloudConfigModal from './components/CloudConfigModal'
 import { PlusCircle, Lock, Cloud, CloudOff } from 'lucide-react'
 import { 
   apiGetStores,
@@ -39,6 +40,7 @@ export default function App() {
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
   const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
 
   // Load Data on Mount
   useEffect(() => {
@@ -271,6 +273,24 @@ export default function App() {
 
           {/* Quick Actions in Navbar */}
           <div className="flex items-center gap-2">
+            {/* Supabase Status Indicator */}
+            {isSupabaseConfigured ? (
+              <span className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Cloud Aktif
+              </span>
+            ) : (
+              <button
+                onClick={() => setIsConfigModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 py-1.5 rounded-xl transition-colors"
+                title="Klik untuk menghubungkan Supabase"
+              >
+                <CloudOff className="w-3.5 h-3.5 text-amber-600" />
+                <span className="hidden sm:inline">Koneksi Cloud</span>
+                <span className="sm:hidden">Cloud</span>
+              </button>
+            )}
+
             {viewMode === 'directory' ? (
               <>
                 <button
@@ -389,6 +409,11 @@ export default function App() {
         isOpen={isRegisterStoreOpen}
         onClose={() => setIsRegisterStoreOpen(false)}
         onRegisterSuccess={handleRegisterSuccess}
+      />
+
+      <CloudConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
       />
 
     </div>
