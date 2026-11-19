@@ -17,7 +17,8 @@ import {
   MapPin,
   ExternalLink,
   Upload,
-  Download
+  Download,
+  X
 } from 'lucide-react'
 import { compressImage } from '../utils/imageHelper'
 
@@ -37,6 +38,7 @@ export default function AdminPage({
   const [copiedBroadcast, setCopiedBroadcast] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [uploadingQris, setUploadingQris] = useState(false)
+  const [selectedProofOrder, setSelectedProofOrder] = useState(null)
 
   const handleQrisUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -697,24 +699,66 @@ export default function AdminPage({
                       )}
                     </div>
 
+                    {/* Struk Bukti Transfer Section */}
+                    {ord.proofImage ? (
+                      <div 
+                        onClick={() => setSelectedProofOrder(ord)}
+                        className="flex items-center justify-between p-2.5 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 rounded-xl cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={ord.proofImage} 
+                            alt="Bukti" 
+                            className="w-9 h-9 object-cover rounded-lg border border-emerald-300 shadow-xs" 
+                          />
+                          <div>
+                            <span className="font-extrabold text-emerald-950 text-xs block">
+                              📸 Bukti Transfer Terlampir
+                            </span>
+                            <span className="text-[10px] text-emerald-700 block">
+                              Klik untuk periksa foto struk asli
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-2xs">
+                          Cek Struk →
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-slate-400 italic px-1">
+                        * Pembeli belum melampirkan foto bukti transfer
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between text-xs pt-1">
                       <span className="text-slate-500 font-medium">
                         Total Tagihan: <strong className="text-slate-900 text-sm">Rp {ord.total.toLocaleString('id-ID')}</strong>
                       </span>
-                      {!ord.isPaid ? (
-                        <button 
-                          onClick={() => handleRemindPayment(ord.name, ord.total)}
-                          className="text-xs font-bold text-brand-700 bg-brand-100 hover:bg-brand-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 bouncy-tap"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>Colek Tagihan WA</span>
-                        </button>
-                      ) : (
-                        <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>Sudah Masuk</span>
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {ord.proofImage && (
+                          <button
+                            onClick={() => setSelectedProofOrder(ord)}
+                            className="text-xs font-bold text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-300 px-2.5 py-1.5 rounded-xl flex items-center gap-1 bouncy-tap"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Lihat Struk</span>
+                          </button>
+                        )}
+                        {!ord.isPaid ? (
+                          <button 
+                            onClick={() => handleRemindPayment(ord.name, ord.total)}
+                            className="text-xs font-bold text-brand-700 bg-brand-100 hover:bg-brand-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 bouncy-tap"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>Colek WA</span>
+                          </button>
+                        ) : (
+                          <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-xl">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <span>Lunas</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -723,6 +767,70 @@ export default function AdminPage({
 
           </div>
 
+        </div>
+      )}
+
+      {/* ==================== MODAL CEK BUKTI STRUK TRANSFER ==================== */}
+      {selectedProofOrder && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-3.5 text-center relative">
+            <button 
+              onClick={() => setSelectedProofOrder(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-left pt-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                Verifikasi Bukti Transfer
+              </span>
+              <h4 className="font-extrabold text-base text-slate-900">
+                {selectedProofOrder.name}
+              </h4>
+              <p className="text-xs text-slate-500">
+                Total: <strong>Rp {selectedProofOrder.total.toLocaleString('id-ID')}</strong> • {selectedProofOrder.method} ({selectedProofOrder.time})
+              </p>
+            </div>
+
+            {/* Receipt Preview */}
+            <div className="w-full max-h-[50vh] bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-inner">
+              <img 
+                src={selectedProofOrder.proofImage} 
+                alt={`Struk ${selectedProofOrder.name}`} 
+                className="max-h-[50vh] w-full object-contain p-1"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="pt-1 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onTogglePayment(selectedProofOrder.id)
+                  setSelectedProofOrder(null)
+                }}
+                className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md bouncy-tap ${
+                  selectedProofOrder.isPaid
+                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-200'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{selectedProofOrder.isPaid ? 'Batal Lunas' : 'Konfirmasi Lunas ✅'}</span>
+              </button>
+
+              <a
+                href={selectedProofOrder.proofImage}
+                download={`struk-${selectedProofOrder.name}.jpg`}
+                className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 bouncy-tap"
+                title="Unduh foto struk"
+              >
+                <Download className="w-4 h-4" />
+              </a>
+            </div>
+
+          </div>
         </div>
       )}
 

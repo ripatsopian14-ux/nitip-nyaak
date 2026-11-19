@@ -85,7 +85,12 @@ export function saveLocalMenus(menus) {
 export function getLocalOrders() {
   try {
     const o = localStorage.getItem(STORAGE_KEYS.ORDERS)
-    return o ? JSON.parse(o) : DEFAULT_ORDERS
+    if (!o) return DEFAULT_ORDERS
+    const parsed = JSON.parse(o)
+    return parsed.map(ord => ({
+      ...ord,
+      items: Array.isArray(ord.items) ? ord.items : (ord.items?.list || ord.items?.items || [])
+    }))
   } catch (_) {
     return DEFAULT_ORDERS
   }
@@ -331,17 +336,29 @@ export async function apiGetOrders() {
       if (error) {
         console.error("Supabase orders fetch error:", error)
       } else if (data) {
-        const mapped = data.map(o => ({
-          id: o.id,
-          storeId: o.store_id,
-          name: o.buyer_name,
-          notes: o.buyer_notes,
-          items: o.items,
-          total: o.total_price,
-          time: new Date(o.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-          method: o.payment_method,
-          isPaid: o.is_paid
-        }))
+        const mapped = data.map(o => {
+          let itemList = []
+          let proofImage = null
+          if (Array.isArray(o.items)) {
+            itemList = o.items
+          } else if (o.items && typeof o.items === 'object') {
+            itemList = o.items.list || o.items.items || []
+            proofImage = o.items.proofImage || null
+          }
+
+          return {
+            id: o.id,
+            storeId: o.store_id,
+            name: o.buyer_name,
+            notes: o.buyer_notes,
+            items: itemList,
+            proofImage: proofImage,
+            total: o.total_price,
+            time: new Date(o.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            method: o.payment_method,
+            isPaid: o.is_paid
+          }
+        })
         saveLocalOrders(mapped)
         return mapped
       }
@@ -360,6 +377,7 @@ export async function apiCreateOrder(orderData) {
     name: orderData.name,
     notes: orderData.notes || "-",
     items: orderData.items,
+    proofImage: orderData.proofImage || null,
     total: orderData.total,
     time: "Baru saja",
     method: orderData.method,
@@ -377,7 +395,10 @@ export async function apiCreateOrder(orderData) {
         store_id: orderData.storeId,
         buyer_name: orderData.name,
         buyer_notes: orderData.notes,
-        items: orderData.items,
+        items: {
+          list: orderData.items,
+          proofImage: orderData.proofImage || null
+        },
         total_price: orderData.total,
         payment_method: orderData.method,
         is_paid: orderData.isPaid

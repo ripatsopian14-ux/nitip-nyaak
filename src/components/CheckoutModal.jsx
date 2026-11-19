@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download, Upload, Clock, Trash2 } from 'lucide-react'
 import confetti from 'canvas-confetti'
+import { compressImage } from '../utils/imageHelper'
 
 export default function CheckoutModal({ 
   isOpen, 
@@ -15,6 +16,27 @@ export default function CheckoutModal({
   const [payMethod, setPayMethod] = useState('qris') // 'qris' | 'bank'
   const [isPaid, setIsPaid] = useState(true)
   const [copiedBank, setCopiedBank] = useState(false)
+  const [proofImage, setProofImage] = useState(null)
+  const [uploadingProof, setUploadingProof] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(900) // 15 mins countdown
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeLeft(900)
+      setProofImage(null)
+      return
+    }
+    const timer = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [isOpen])
+
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
   if (!isOpen || !store) return null
 
@@ -34,6 +56,22 @@ export default function CheckoutModal({
     navigator.clipboard.writeText(store.bankNumber)
     setCopiedBank(true)
     setTimeout(() => setCopiedBank(false), 2000)
+  }
+
+  const handleProofUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setUploadingProof(true)
+      const dataUrl = await compressImage(file, 700, 700, 0.85)
+      setProofImage(dataUrl)
+      setIsPaid(true)
+    } catch (err) {
+      alert("Gagal membaca bukti pembayaran: " + (err.message || 'Format tidak didukung'))
+    } finally {
+      setUploadingProof(false)
+      e.target.value = ''
+    }
   }
 
   const handleSubmit = (e) => {
@@ -57,6 +95,7 @@ export default function CheckoutModal({
       notes: buyerNotes.trim(),
       method: payMethod === 'qris' ? 'QRIS' : `Transfer ${store.bankName}`,
       isPaid,
+      proofImage,
       items,
       total
     })
@@ -72,7 +111,12 @@ export default function CheckoutModal({
       text += `📝 *Catatan:* ${buyerNotes.trim()}\n\n`
     }
     text += `💵 *Total:* Rp ${total.toLocaleString('id-ID')}\n`
-    text += `💳 *Status Bayar:* ${isPaid ? 'SUDAH BAYAR VIA QRIS / TRANSFER ✅' : 'Belum Bayar (Segera Transfer)'}\n\n`
+    text += `💳 *Status Bayar:* ${isPaid ? 'SUDAH BAYAR VIA QRIS / TRANSFER ✅' : 'Belum Bayar (Segera Transfer)'}\n`
+    if (proofImage) {
+      text += `📸 *Bukti Struk Transfer:* Sudah diunggah di web & saya lampirkan di sini yaa 🙏\n\n`
+    } else {
+      text += `\n`
+    }
     text += `Mohon dicatat yaa, terima kasih banyak! 🙏`
 
     const waUrl = `https://wa.me/${store.sellerPhone}?text=${encodeURIComponent(text)}`
@@ -100,6 +144,17 @@ export default function CheckoutModal({
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Countdown Timer Bar */}
+        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl px-3 py-2 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-amber-900 text-[11px]">
+            <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+            <span>Selesaikan Bayar Dalam:</span>
+          </div>
+          <div className="font-mono font-black text-amber-950 bg-white px-2 py-0.5 rounded-lg border border-amber-300 shadow-sm text-xs">
+            {formatTimer(timeLeft)}
+          </div>
         </div>
 
         {/* Order Summary */}
@@ -239,6 +294,53 @@ export default function CheckoutModal({
               </div>
             </div>
           )}
+
+          {/* Upload Proof of Payment Box */}
+          <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                <Upload className="w-3.5 h-3.5 text-brand-600" />
+                <span>Unggah Bukti Transfer / Struk QRIS:</span>
+              </span>
+              {proofImage ? (
+                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Struk Terlampir ✅
+                </span>
+              ) : (
+                <span className="text-[9px] text-slate-400">
+                  Opsional tapi disarankan
+                </span>
+              )}
+            </div>
+
+            {proofImage ? (
+              <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-emerald-300 shadow-sm">
+                <img 
+                  src={proofImage} 
+                  alt="Bukti Transfer" 
+                  className="w-12 h-12 object-cover rounded-lg border border-slate-200 shrink-0" 
+                />
+                <div className="flex-1 text-left">
+                  <span className="text-xs font-bold text-emerald-900 block leading-tight">Bukti Siap Dicek Penjual!</span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">Penjual bisa verifikasi langsung di dashboard.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setProofImage(null)}
+                  className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                  title="Hapus foto struk"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 py-2.5 px-3 bg-white hover:bg-slate-100/80 border border-dashed border-slate-300 rounded-xl cursor-pointer text-xs font-bold text-slate-700 transition-colors bouncy-tap">
+                <Upload className="w-4 h-4 text-slate-400" />
+                <span>{uploadingProof ? 'Mengunggah struk...' : 'Pilih Foto / Screenshot Struk'}</span>
+                <input type="file" accept="image/*" onChange={handleProofUpload} className="hidden" />
+              </label>
+            )}
+          </div>
 
           {/* Checkbox Confirmed */}
           <label className="flex items-center gap-2 pt-1 text-[11px] text-slate-700 font-medium cursor-pointer select-none">
