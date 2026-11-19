@@ -460,6 +460,7 @@ export default function App() {
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
+        targetEmail="ripat.sopian17@gmail.com"
       />
 
     </div>

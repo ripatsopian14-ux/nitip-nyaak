@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { X, MessageSquare, Bug, Sparkles, Send, CheckCircle2, Mail, User, AlertCircle } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
-export default function FeedbackModal({ isOpen, onClose, targetEmail = "ripatsopian14@gmail.com" }) {
+export default function FeedbackModal({ isOpen, onClose, targetEmail = "ripat.sopian17@gmail.com" }) {
   const [category, setCategory] = useState('bug') // 'bug' | 'feature' | 'general'
   const [name, setName] = useState('')
   const [senderContact, setSenderContact] = useState('')
