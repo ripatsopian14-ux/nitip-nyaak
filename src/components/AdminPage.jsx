@@ -10,7 +10,10 @@ import {
   QrCode, 
   MessageCircle, 
   CheckCircle2, 
-  Clock 
+  Clock,
+  Eye,
+  LogOut,
+  KeyRound
 } from 'lucide-react'
 
 export default function AdminPage({ 
@@ -20,7 +23,9 @@ export default function AdminPage({
   onDeleteMenu, 
   onOpenAddMenu, 
   orders, 
-  onTogglePayment 
+  onTogglePayment,
+  onExitToBuyer,
+  onLogout
 }) {
   const [activeSubTab, setActiveSubTab] = useState('setting') // 'setting' | 'rekap'
   const [orderFilter, setOrderFilter] = useState('all') // 'all' | 'unpaid' | 'paid'
@@ -78,6 +83,26 @@ export default function AdminPage({
   return (
     <div className="flex-1 flex flex-col overflow-y-auto bg-slate-50 pb-20">
       
+      {/* Top Admin Action Bar */}
+      <div className="px-4 py-2.5 bg-slate-900 text-white flex items-center justify-between text-xs border-b border-slate-800">
+        <button 
+          onClick={onExitToBuyer}
+          className="flex items-center gap-1.5 text-slate-300 hover:text-white font-medium bouncy-tap"
+        >
+          <Eye className="w-3.5 h-3.5 text-brand-400" />
+          <span>Lihat Menu Pembeli</span>
+        </button>
+
+        <button 
+          onClick={onLogout}
+          className="flex items-center gap-1 text-rose-400 hover:text-rose-300 font-bold bouncy-tap"
+          title="Kunci Dashboard"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Kunci Admin</span>
+        </button>
+      </div>
+
       {/* Sub-Tab Navigation */}
       <div className="p-3 bg-white border-b border-slate-200/80 sticky top-0 z-10 shadow-sm">
         <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold text-slate-600">
@@ -177,13 +202,27 @@ export default function AdminPage({
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">No. WhatsApp Penjual (Tujuan Checkout)</label>
+                <label className="block text-slate-600 font-semibold mb-1">No. WhatsApp Penjual (Tujuan Pesanan)</label>
                 <input 
                   type="text" 
                   value={settings.sellerPhone} 
                   onChange={(e) => onUpdateSettings({ ...settings, sellerPhone: e.target.value })}
                   placeholder="6281234567890"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <label className="block text-slate-600 font-semibold text-xs">PIN Masuk Admin</label>
+                  <span className="text-[10px] text-slate-400">Dipakai untuk membuka menu ini</span>
+                </div>
+                <input 
+                  type="text" 
+                  maxLength={4}
+                  value={settings.adminPin || "1234"} 
+                  onChange={(e) => onUpdateSettings({ ...settings, adminPin: e.target.value })}
+                  className="w-20 text-center font-mono font-bold bg-slate-100 border border-slate-200 rounded-xl px-2 py-1 text-slate-800 focus:outline-none focus:border-brand-500 text-xs"
                 />
               </div>
             </div>
