@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download, Upload, Clock, Trash2 } from 'lucide-react'
+import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download, Upload, Clock, Trash2, AlertCircle } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { compressImage } from '../utils/imageHelper'
 
@@ -14,7 +14,7 @@ export default function CheckoutModal({
   const [buyerName, setBuyerName] = useState('')
   const [buyerNotes, setBuyerNotes] = useState('')
   const [payMethod, setPayMethod] = useState('qris') // 'qris' | 'bank'
-  const [isPaid, setIsPaid] = useState(true)
+  const [isPaid, setIsPaid] = useState(false)
   const [copiedBank, setCopiedBank] = useState(false)
   const [proofImage, setProofImage] = useState(null)
   const [uploadingProof, setUploadingProof] = useState(false)
@@ -24,6 +24,7 @@ export default function CheckoutModal({
     if (!isOpen) {
       setTimeLeft(900)
       setProofImage(null)
+      setIsPaid(false)
       return
     }
     const timer = setInterval(() => {
@@ -89,12 +90,14 @@ export default function CheckoutModal({
       })
     } catch (_) {}
 
+    const finalIsPaid = Boolean(proofImage && isPaid)
+
     onSubmitOrder({
       storeId: store.id,
       name: buyerName.trim(),
       notes: buyerNotes.trim(),
       method: payMethod === 'qris' ? 'QRIS' : `Transfer ${store.bankName}`,
-      isPaid,
+      isPaid: finalIsPaid,
       proofImage,
       items,
       total
@@ -111,7 +114,7 @@ export default function CheckoutModal({
       text += `📝 *Catatan:* ${buyerNotes.trim()}\n\n`
     }
     text += `💵 *Total:* Rp ${total.toLocaleString('id-ID')}\n`
-    text += `💳 *Status Bayar:* ${isPaid ? 'SUDAH BAYAR VIA QRIS / TRANSFER ✅' : 'Belum Bayar (Segera Transfer)'}\n`
+    text += `💳 *Status Bayar:* ${finalIsPaid ? 'SUDAH BAYAR VIA QRIS / TRANSFER ✅' : 'Belum Bayar (Segera Transfer)'}\n`
     if (proofImage) {
       text += `📸 *Bukti Struk Transfer:* Sudah diunggah di web & saya lampirkan di sini yaa 🙏\n\n`
     } else {
@@ -326,7 +329,10 @@ export default function CheckoutModal({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setProofImage(null)}
+                  onClick={() => {
+                    setProofImage(null)
+                    setIsPaid(false)
+                  }}
                   className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
                   title="Hapus foto struk"
                 >
@@ -342,16 +348,45 @@ export default function CheckoutModal({
             )}
           </div>
 
-          {/* Checkbox Confirmed */}
-          <label className="flex items-center gap-2 pt-1 text-[11px] text-slate-700 font-medium cursor-pointer select-none">
-            <input 
-              type="checkbox" 
-              checked={isPaid} 
-              onChange={(e) => setIsPaid(e.target.checked)}
-              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600" 
-            />
-            <span>Saya sudah bayar / scan QRIS sekarang</span>
-          </label>
+          {/* Smart Payment Status Card */}
+          <div className={`p-3 rounded-2xl border transition-all ${
+            proofImage && isPaid 
+              ? 'bg-emerald-50/90 border-emerald-300' 
+              : 'bg-amber-50/70 border-amber-200'
+          }`}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {proofImage && isPaid ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                ) : (
+                  <Clock className="w-5 h-5 text-amber-500 shrink-0" />
+                )}
+                <div className="text-left">
+                  <span className="font-extrabold text-xs text-slate-900 block">
+                    {proofImage && isPaid ? 'Status: SUDAH BAYAR (LUNAS) ✅' : 'Status: BELUM BAYAR (TRANSFER NANTI) ⏳'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">
+                    {proofImage && isPaid
+                      ? 'Struk kamu akan otomatis diverifikasi oleh penjual.' 
+                      : 'Wajib unggah struk di atas agar pesanan ditandai lunas.'}
+                  </span>
+                </div>
+              </div>
+
+              <input 
+                type="checkbox" 
+                checked={Boolean(proofImage && isPaid)} 
+                onChange={(e) => {
+                  if (!proofImage && e.target.checked) {
+                    alert("⚠️ Kunci Keamanan:\nUntuk menandai pesanan 'Sudah Bayar', kamu wajib memilih & mengunggah foto struk bukti pembayaran di atas terlebih dahulu yaa!")
+                    return
+                  }
+                  setIsPaid(e.target.checked)
+                }}
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer shrink-0" 
+              />
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}
