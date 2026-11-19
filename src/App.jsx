@@ -252,9 +252,11 @@ export default function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFAF7] flex flex-col items-center justify-center p-4 font-sans">
-        <div className="w-14 h-14 rounded-3xl bg-brand-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-brand-200 animate-bounce">
-          🍲
-        </div>
+        <img 
+          src="/logo.jpg" 
+          alt="Nitip Nyaak!" 
+          className="w-16 h-16 rounded-3xl shadow-lg shadow-orange-300/40 object-cover animate-bounce border-2 border-white" 
+        />
         <p className="text-sm font-bold text-slate-700 mt-3">Memuat Nitip Nyaak!...</p>
       </div>
     )
@@ -272,8 +274,8 @@ export default function App() {
             onClick={handleBackToDirectory}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-xl shadow-md shadow-orange-200 shrink-0 group-hover:scale-105 transition-transform">
-              🍲
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-md shadow-orange-200 shrink-0 group-hover:scale-105 transition-transform border border-orange-100">
+              <img src="/logo.jpg" alt="Logo Nitip Nyaak" className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">

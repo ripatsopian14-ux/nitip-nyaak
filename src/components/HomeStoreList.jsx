@@ -36,7 +36,7 @@ export default function HomeStoreList({
     <div className="space-y-6">
       
       {/* Hero Header Bersih & Luas */}
-      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-orange-100/60 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-orange-100/60 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="relative z-10 max-w-xl">
           <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-200 bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-200" />
@@ -68,6 +68,13 @@ export default function HomeStoreList({
                 <span>Masuk Lapak Saya</span>
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Logo Card Display */}
+        <div className="hidden sm:flex shrink-0 relative z-10 items-center justify-center">
+          <div className="w-28 h-28 md:w-36 md:h-36 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/25 rotate-3 hover:rotate-0 transition-transform">
+            <img src="/logo.jpg" alt="Logo Nitip Nyaak" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
