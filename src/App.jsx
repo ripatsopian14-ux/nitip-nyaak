@@ -6,7 +6,7 @@ import CheckoutModal from './components/CheckoutModal'
 import AddMenuModal from './components/AddMenuModal'
 import AdminLoginModal from './components/AdminLoginModal'
 import RegisterStoreModal from './components/RegisterStoreModal'
-import { PlusCircle, Lock, Store } from 'lucide-react'
+import { PlusCircle, Lock, Cloud, CloudOff } from 'lucide-react'
 import { 
   apiGetStores,
   apiSaveStore,
@@ -78,7 +78,7 @@ export default function App() {
     const hash = window.location.hash.toLowerCase()
     const path = window.location.pathname.toLowerCase()
 
-    // 1. Direct Store Link (e.g. #/toko/mamah-latif)
+    // 1. Direct Store Link (e.g. #/toko/warung-mama-latif)
     const storeMatch = hash.match(/#\/?toko\/([\w-]+)/) || path.match(/\/toko\/([\w-]+)/)
     if (storeMatch && storeMatch[1]) {
       const slug = storeMatch[1]
@@ -222,9 +222,10 @@ export default function App() {
     setStores(updatedList)
     setAdminStore(newStore)
     setLoggedAdminStoreId(newStore.id)
+    setActiveStore(newStore)
     setViewMode('admin')
-    window.location.hash = '#/admin'
-    alert(`🎉 Selamat! Lapak "${newStore.name}" berhasil dibuat! Kamu bisa langsung atur menu makanan dan bagikan link lapakmu ke grup WA.`)
+    window.location.hash = `#/toko/${newStore.slug}`
+    alert(`🎉 Lapak "${newStore.name}" berhasil dibuat! Link lapakmu: ${window.location.origin}/#/toko/${newStore.slug}`)
   }
 
   if (loading) {
@@ -241,7 +242,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-slate-800 flex flex-col font-sans antialiased">
       
-      {/* NAVBAR MODERN, BERSIH & LUAS (TIDAK MEPEK / BUKAN HP BEZEL) */}
+      {/* NAVBAR MODERN & BERSIH */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5 sm:px-6 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           
@@ -312,7 +313,14 @@ export default function App() {
         </div>
       </header>
 
-      {/* MAIN CONTENT AREA - RESPONSIVE & LUAS */}
+      {/* CLOUD DATABASE STATUS WARNING (IF NOT CONFIGURED YET ON VERCEL) */}
+      {!isSupabaseConfigured && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-800">
+          <span className="font-bold">⚠️ Catatan Sinkronisasi:</span> Cloud database Supabase belum terhubung di Vercel. Lapak yang dibuat saat ini baru tersimpan di browser perangkat ini. (Hubungkan variabel Supabase di Vercel agar otomatis tersinkron ke HP & teman-teman).
+        </div>
+      )}
+
+      {/* MAIN CONTENT AREA */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-8">
         
         {viewMode === 'admin' && adminStore ? (
@@ -348,7 +356,7 @@ export default function App() {
 
       </main>
 
-      {/* FOOTER BERSIH */}
+      {/* FOOTER */}
       <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400">
         <p>🍲 <strong>Nitip Nyaak!</strong> — Solusi titip makan siang kantor & komunitas tanpa pusing rekap.</p>
       </footer>

@@ -1,9 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Support all possible Vercel / Vite env var names
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
+                    import.meta.env.SUPABASE_URL || 
+                    import.meta.env.NEXT_PUBLIC_SUPABASE_URL
+
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
+                       import.meta.env.SUPABASE_ANON_KEY || 
+                       import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+if (isSupabaseConfigured) {
+  console.log("✅ Supabase Terhubung:", supabaseUrl)
+} else {
+  console.warn("⚠️ Supabase Belum Terhubung! Menggunakan Local Storage laptop.")
+}
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
@@ -88,7 +100,9 @@ export async function apiGetStores() {
         .select('*')
         .order('created_at', { ascending: true })
 
-      if (!error && data) {
+      if (error) {
+        console.error("Supabase stores fetch error:", error)
+      } else if (data) {
         const mapped = data.map(s => ({
           id: s.id,
           slug: s.id,
@@ -133,7 +147,7 @@ export async function apiSaveStore(storeData) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('stores').upsert({
+      const { error } = await supabase.from('stores').upsert({
         id: storeData.id,
         name: storeData.name,
         owner_name: storeData.ownerName,
@@ -152,6 +166,9 @@ export async function apiSaveStore(storeData) {
         badge: storeData.badge,
         is_open: storeData.isOpen
       })
+      if (error) {
+        console.error("Supabase store upsert error:", error)
+      }
     } catch (e) {
       console.warn("Supabase store save error:", e)
     }
@@ -167,7 +184,9 @@ export async function apiGetMenus() {
         .select('*')
         .order('id', { ascending: true })
 
-      if (!error && data) {
+      if (error) {
+        console.error("Supabase menus fetch error:", error)
+      } else if (data) {
         const mapped = data.map(m => ({
           id: m.id,
           storeId: m.store_id,
@@ -196,7 +215,7 @@ export async function apiSaveMenu(menu) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data } = await supabase.from('menu_items').insert({
+      const { data, error } = await supabase.from('menu_items').insert({
         store_id: menu.storeId,
         name: menu.name,
         description: menu.desc,
@@ -206,7 +225,11 @@ export async function apiSaveMenu(menu) {
         badge: menu.badge
       }).select().single()
 
-      if (data) newMenu.id = data.id
+      if (error) {
+        console.error("Supabase menu insert error:", error)
+      } else if (data) {
+        newMenu.id = data.id
+      }
     } catch (e) {
       console.warn("Supabase menu insert error:", e)
     }
@@ -221,7 +244,8 @@ export async function apiDeleteMenu(id) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('menu_items').delete().eq('id', id)
+      const { error } = await supabase.from('menu_items').delete().eq('id', id)
+      if (error) console.error("Supabase menu delete error:", error)
     } catch (e) {
       console.warn("Supabase menu delete error:", e)
     }
@@ -237,7 +261,9 @@ export async function apiGetOrders() {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (!error && data) {
+      if (error) {
+        console.error("Supabase orders fetch error:", error)
+      } else if (data) {
         const mapped = data.map(o => ({
           id: o.id,
           storeId: o.store_id,
@@ -279,7 +305,7 @@ export async function apiCreateOrder(orderData) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('orders').insert({
+      const { error } = await supabase.from('orders').insert({
         id,
         store_id: orderData.storeId,
         buyer_name: orderData.name,
@@ -289,6 +315,7 @@ export async function apiCreateOrder(orderData) {
         payment_method: orderData.method,
         is_paid: orderData.isPaid
       })
+      if (error) console.error("Supabase order insert error:", error)
     } catch (e) {
       console.warn("Supabase order insert error:", e)
     }
@@ -303,7 +330,8 @@ export async function apiTogglePayment(orderId, isPaid) {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('orders').update({ is_paid: isPaid }).eq('id', orderId)
+      const { error } = await supabase.from('orders').update({ is_paid: isPaid }).eq('id', orderId)
+      if (error) console.error("Supabase payment update error:", error)
     } catch (e) {
       console.warn("Supabase payment update error:", e)
     }
