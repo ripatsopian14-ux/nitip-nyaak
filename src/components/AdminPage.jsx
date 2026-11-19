@@ -13,12 +13,12 @@ import {
   Clock,
   Eye,
   LogOut,
-  KeyRound
+  ExternalLink
 } from 'lucide-react'
 
 export default function AdminPage({ 
-  settings, 
-  onUpdateSettings, 
+  store, 
+  onUpdateStore, 
   menus, 
   onDeleteMenu, 
   onOpenAddMenu, 
@@ -30,6 +30,11 @@ export default function AdminPage({
   const [activeSubTab, setActiveSubTab] = useState('setting') // 'setting' | 'rekap'
   const [orderFilter, setOrderFilter] = useState('all') // 'all' | 'unpaid' | 'paid'
   const [copiedBroadcast, setCopiedBroadcast] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+
+  // Filter menus & orders only for THIS store
+  const storeMenus = menus.filter(m => m.storeId === store.id)
+  const storeOrders = orders.filter(o => o.storeId === store.id)
 
   // Calculations for Rekap
   let totalRevenue = 0
@@ -39,7 +44,7 @@ export default function AdminPage({
   let paidCount = 0
   let portionMap = {}
 
-  orders.forEach(order => {
+  storeOrders.forEach(order => {
     totalRevenue += order.total
     if (order.isPaid) {
       totalPaid += order.total
@@ -54,23 +59,31 @@ export default function AdminPage({
     })
   })
 
-  const paymentRatioPct = orders.length > 0 ? (paidCount / orders.length) * 100 : 0
+  const paymentRatioPct = storeOrders.length > 0 ? (paidCount / storeOrders.length) * 100 : 0
 
   // Filtered orders
-  let displayOrders = orders
-  if (orderFilter === 'paid') displayOrders = orders.filter(o => o.isPaid)
-  if (orderFilter === 'unpaid') displayOrders = orders.filter(o => !o.isPaid)
+  let displayOrders = storeOrders
+  if (orderFilter === 'paid') displayOrders = storeOrders.filter(o => o.isPaid)
+  if (orderFilter === 'unpaid') displayOrders = storeOrders.filter(o => !o.isPaid)
+
+  // Direct link to this store
+  const storeDirectUrl = `${window.location.origin}/#/toko/${store.slug || store.id}`
 
   // Copy Broadcast WhatsApp text
   const handleCopyBroadcast = () => {
-    const menuListText = menus.map(m => `${m.icon} *${m.name}* - Rp ${m.price.toLocaleString('id-ID')}`).join('\n')
-    const appUrl = window.location.origin
+    const menuListText = storeMenus.map(m => `${m.icon} *${m.name}* - Rp ${m.price.toLocaleString('id-ID')}`).join('\n')
 
-    const text = `📢 *OPEN PO JASTIP ${settings.storeTitle.toUpperCase()}!* ✨\n\nHalo temen-temen! Mamah mau open jastip makan siang nih:\n\n📅 *Untuk Kedatangan:* ${settings.deliveryDate}\n⏰ *Jam Tiba:* ${settings.deliveryTime}\n📍 *Lokasi Ambil:* ${settings.pickupLocation}\n⏳ *Batas Pesan:* ${settings.cutoffTime}\n💳 *Pembayaran:* Bisa QRIS / Transfer ${settings.bankName}\n\n🍛 *Pilihan Menu:*\n${menuListText}\n\n👇 *Biar gak lupa & praktis, klik link ini buat langsung pilih menu & bayar:*\n${appUrl}\n\n_Pesan lewat link di atas yaa biar otomatis terdata & gak kehabisan slot!_`
+    const text = `📢 *OPEN PO JASTIP ${store.name.toUpperCase()}!* ✨\n\nHalo temen-temen! Mamah mau open jastip makan siang nih:\n\n📅 *Untuk Kedatangan:* ${store.deliveryDate}\n⏰ *Jam Tiba:* ${store.deliveryTime}\n📍 *Lokasi Ambil:* ${store.pickupLocation}\n⏳ *Batas Pesan:* ${store.cutoffTime}\n💳 *Pembayaran:* Bisa QRIS / Transfer ${store.bankName}\n\n🍛 *Pilihan Menu:*\n${menuListText}\n\n👇 *Biar gak lupa & praktis, klik link lapak ini buat langsung pilih menu & bayar:*\n${storeDirectUrl}\n\n_Pesan lewat link di atas yaa biar otomatis terdata & gak kehabisan slot!_`
 
     navigator.clipboard.writeText(text)
     setCopiedBroadcast(true)
     setTimeout(() => setCopiedBroadcast(false), 2500)
+  }
+
+  const handleCopyLinkOnly = () => {
+    navigator.clipboard.writeText(storeDirectUrl)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2000)
   }
 
   // Remind unpaid order
@@ -90,16 +103,20 @@ export default function AdminPage({
           className="flex items-center gap-1.5 text-slate-300 hover:text-white font-medium bouncy-tap"
         >
           <Eye className="w-3.5 h-3.5 text-brand-400" />
-          <span>Lihat Menu Pembeli</span>
+          <span>Lihat Toko</span>
         </button>
+
+        <span className="text-[11px] font-bold text-amber-300 truncate max-w-[150px]">
+          {store.name}
+        </span>
 
         <button 
           onClick={onLogout}
           className="flex items-center gap-1 text-rose-400 hover:text-rose-300 font-bold bouncy-tap"
-          title="Kunci Dashboard"
+          title="Keluar / Kunci"
         >
           <LogOut className="w-3.5 h-3.5" />
-          <span>Kunci Admin</span>
+          <span>Kunci</span>
         </button>
       </div>
 
@@ -115,7 +132,7 @@ export default function AdminPage({
             }`}
           >
             <Settings className="w-3.5 h-3.5" />
-            <span>Atur PO, Menu & QRIS</span>
+            <span>Atur Lapak & Menu</span>
           </button>
 
           <button 
@@ -127,7 +144,7 @@ export default function AdminPage({
             }`}
           >
             <ChefHat className="w-3.5 h-3.5" />
-            <span>Rekap & Status Bayar ({orders.length})</span>
+            <span>Rekap Pesanan ({storeOrders.length})</span>
           </button>
         </div>
       </div>
@@ -136,6 +153,28 @@ export default function AdminPage({
       {activeSubTab === 'setting' && (
         <div className="p-4 space-y-4">
           
+          {/* Card Direct Link Share */}
+          <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-4 rounded-3xl text-white shadow-md shadow-indigo-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                Link Khusus Lapakmu
+              </span>
+              <button 
+                onClick={handleCopyLinkOnly}
+                className="text-[10px] bg-white text-violet-900 font-extrabold px-2.5 py-1 rounded-xl flex items-center gap-1 bouncy-tap"
+              >
+                {copiedLink ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedLink ? 'Tersalin' : 'Salin Link'}</span>
+              </button>
+            </div>
+            <p className="text-[11px] font-mono text-purple-100 truncate bg-black/20 p-2 rounded-xl">
+              {storeDirectUrl}
+            </p>
+            <p className="text-[10px] text-purple-200">
+              * Bagikan link ini ke grup WA agar teman-teman langsung masuk ke lapakmu!
+            </p>
+          </div>
+
           {/* Card 1: Setting Jadwal & Titik Ambil */}
           <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -144,37 +183,37 @@ export default function AdminPage({
                 <span>Jadwal PO & Lokasi Ambil</span>
               </h4>
               <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                Langsung Aktif
+                Aktif
               </span>
             </div>
 
             <div className="space-y-2.5 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">Nama Jastip / Katering</label>
+                <label className="block text-slate-600 font-semibold mb-1">Nama Lapak Jastip</label>
                 <input 
                   type="text" 
-                  value={settings.storeTitle} 
-                  onChange={(e) => onUpdateSettings({ ...settings, storeTitle: e.target.value })}
+                  value={store.name} 
+                  onChange={(e) => onUpdateStore({ ...store, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Makanan Datang Kapan?</label>
+                  <label className="block text-slate-600 font-semibold mb-1">Makanan Datang</label>
                   <input 
                     type="text" 
-                    value={settings.deliveryDate} 
-                    onChange={(e) => onUpdateSettings({ ...settings, deliveryDate: e.target.value })}
+                    value={store.deliveryDate} 
+                    onChange={(e) => onUpdateStore({ ...store, deliveryDate: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Jam Tiba di Kantor</label>
+                  <label className="block text-slate-600 font-semibold mb-1">Jam Tiba</label>
                   <input 
                     type="text" 
-                    value={settings.deliveryTime} 
-                    onChange={(e) => onUpdateSettings({ ...settings, deliveryTime: e.target.value })}
+                    value={store.deliveryTime} 
+                    onChange={(e) => onUpdateStore({ ...store, deliveryTime: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -185,8 +224,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Tutup PO (Cut-Off)</label>
                   <input 
                     type="text" 
-                    value={settings.cutoffTime} 
-                    onChange={(e) => onUpdateSettings({ ...settings, cutoffTime: e.target.value })}
+                    value={store.cutoffTime} 
+                    onChange={(e) => onUpdateStore({ ...store, cutoffTime: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -194,19 +233,19 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Titik Ambil Makanan</label>
                   <input 
                     type="text" 
-                    value={settings.pickupLocation} 
-                    onChange={(e) => onUpdateSettings({ ...settings, pickupLocation: e.target.value })}
+                    value={store.pickupLocation} 
+                    onChange={(e) => onUpdateStore({ ...store, pickupLocation: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">No. WhatsApp Penjual (Tujuan Pesanan)</label>
+                <label className="block text-slate-600 font-semibold mb-1">No. WhatsApp Kamu</label>
                 <input 
                   type="text" 
-                  value={settings.sellerPhone} 
-                  onChange={(e) => onUpdateSettings({ ...settings, sellerPhone: e.target.value })}
+                  value={store.sellerPhone} 
+                  onChange={(e) => onUpdateStore({ ...store, sellerPhone: e.target.value })}
                   placeholder="6281234567890"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                 />
@@ -214,14 +253,14 @@ export default function AdminPage({
 
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <label className="block text-slate-600 font-semibold text-xs">PIN Masuk Admin</label>
-                  <span className="text-[10px] text-slate-400">Dipakai untuk membuka menu ini</span>
+                  <label className="block text-slate-600 font-semibold text-xs">PIN Masuk Lapak</label>
+                  <span className="text-[10px] text-slate-400">Dipakai untuk membuka lapak ini</span>
                 </div>
                 <input 
                   type="text" 
                   maxLength={4}
-                  value={settings.adminPin || "1234"} 
-                  onChange={(e) => onUpdateSettings({ ...settings, adminPin: e.target.value })}
+                  value={store.adminPin || "1234"} 
+                  onChange={(e) => onUpdateStore({ ...store, adminPin: e.target.value })}
                   className="w-20 text-center font-mono font-bold bg-slate-100 border border-slate-200 rounded-xl px-2 py-1 text-slate-800 focus:outline-none focus:border-brand-500 text-xs"
                 />
               </div>
@@ -233,7 +272,7 @@ export default function AdminPage({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
                 <span>💳</span>
-                <span>Data Rekening & QRIS Mamah</span>
+                <span>Data Rekening & QRIS</span>
               </h4>
               <span className="text-[10px] font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">
                 QRIS Aktif
@@ -245,8 +284,8 @@ export default function AdminPage({
                 <label className="block text-slate-600 font-semibold mb-1">Nama Pemilik Rekening / QRIS</label>
                 <input 
                   type="text" 
-                  value={settings.paymentName} 
-                  onChange={(e) => onUpdateSettings({ ...settings, paymentName: e.target.value })}
+                  value={store.paymentName || store.ownerName} 
+                  onChange={(e) => onUpdateStore({ ...store, paymentName: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                 />
               </div>
@@ -256,8 +295,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Nama Bank</label>
                   <input 
                     type="text" 
-                    value={settings.bankName} 
-                    onChange={(e) => onUpdateSettings({ ...settings, bankName: e.target.value })}
+                    value={store.bankName} 
+                    onChange={(e) => onUpdateStore({ ...store, bankName: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -265,8 +304,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Nomor Rekening</label>
                   <input 
                     type="text" 
-                    value={settings.bankNumber} 
-                    onChange={(e) => onUpdateSettings({ ...settings, bankNumber: e.target.value })}
+                    value={store.bankNumber} 
+                    onChange={(e) => onUpdateStore({ ...store, bankNumber: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -274,12 +313,12 @@ export default function AdminPage({
             </div>
           </div>
 
-          {/* Card 3: Kelola Menu (Tambah & Hapus) */}
+          {/* Card 3: Kelola Menu Lapak Ini */}
           <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
                 <span>🍛</span>
-                <span>Menu Yang Di-open Hari Ini</span>
+                <span>Menu {store.name}</span>
               </h4>
               <button 
                 onClick={onOpenAddMenu} 
@@ -291,26 +330,30 @@ export default function AdminPage({
             </div>
 
             <div className="space-y-2 text-xs">
-              {menus.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="text-xl shrink-0">{item.icon}</span>
-                    <div className="min-w-0">
-                      <span className="font-bold text-slate-800 text-xs block truncate">{item.name}</span>
-                      <span className="text-[10px] text-slate-500">
-                        Rp {item.price.toLocaleString('id-ID')} • Kuota: {item.quota} porsi
-                      </span>
+              {storeMenus.length === 0 ? (
+                <p className="text-slate-400 text-center py-3 text-xs">Belum ada menu di lapak ini</p>
+              ) : (
+                storeMenus.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-xl shrink-0">{item.icon}</span>
+                      <div className="min-w-0">
+                        <span className="font-bold text-slate-800 text-xs block truncate">{item.name}</span>
+                        <span className="text-[10px] text-slate-500">
+                          Rp {item.price.toLocaleString('id-ID')} • Kuota: {item.quota} porsi
+                        </span>
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => onDeleteMenu(item.id)}
+                      className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 shrink-0 bouncy-tap"
+                      title="Hapus Menu"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => onDeleteMenu(item.id)}
-                    className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 shrink-0 bouncy-tap"
-                    title="Hapus Menu"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -324,7 +367,7 @@ export default function AdminPage({
               <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">1 Klik Copas</span>
             </div>
             <p className="text-[11px] text-emerald-50 leading-relaxed">
-              Teks pengumuman rapi sudah otomatis terbuat beserta link ordernya. Tinggal copas ke grup WA teman-teman.
+              Teks pengumuman rapi sudah otomatis terbuat beserta link langsung ke lapakmu.
             </p>
             <button 
               onClick={handleCopyBroadcast}
@@ -361,7 +404,7 @@ export default function AdminPage({
             <div className="flex items-center justify-between">
               <h4 className="font-extrabold text-xs text-slate-800">Status Pembayaran Uang Masuk</h4>
               <span className="text-[11px] font-bold text-emerald-600">
-                {paidCount} dari {orders.length} Lunas
+                {paidCount} dari {storeOrders.length} Lunas
               </span>
             </div>
 
@@ -416,7 +459,7 @@ export default function AdminPage({
             <div className="flex items-center justify-between pb-1 border-b border-slate-100">
               <h4 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
                 <span>👥</span>
-                <span>Daftar Pemesan & Status Bayar</span>
+                <span>Daftar Pemesan di Lapak Ini</span>
               </h4>
               <span className="text-[10px] text-slate-400">Klik tombol buat ubah status</span>
             </div>
@@ -429,7 +472,7 @@ export default function AdminPage({
                   orderFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
                 }`}
               >
-                Semua ({orders.length})
+                Semua ({storeOrders.length})
               </button>
               <button 
                 onClick={() => setOrderFilter('unpaid')} 
@@ -437,7 +480,7 @@ export default function AdminPage({
                   orderFilter === 'unpaid' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-amber-700'
                 }`}
               >
-                Belum Lunas ({orders.filter(o => !o.isPaid).length})
+                Belum Lunas ({storeOrders.filter(o => !o.isPaid).length})
               </button>
               <button 
                 onClick={() => setOrderFilter('paid')} 
@@ -445,7 +488,7 @@ export default function AdminPage({
                   orderFilter === 'paid' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-emerald-700'
                 }`}
               >
-                Sudah Lunas ({orders.filter(o => o.isPaid).length})
+                Sudah Lunas ({storeOrders.filter(o => o.isPaid).length})
               </button>
             </div>
 
@@ -467,7 +510,6 @@ export default function AdminPage({
                         <span className="text-[10px] text-slate-400 block">{ord.time} • via {ord.method}</span>
                       </div>
                       
-                      {/* Toggle Button */}
                       <button 
                         onClick={() => onTogglePayment(ord.id)}
                         className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold flex items-center gap-1 transition-all bouncy-tap ${

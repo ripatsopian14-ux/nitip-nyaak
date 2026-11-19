@@ -7,7 +7,7 @@ export default function CheckoutModal({
   onClose, 
   cart, 
   menus, 
-  settings, 
+  store, 
   onSubmitOrder 
 }) {
   const [buyerName, setBuyerName] = useState('')
@@ -16,9 +16,9 @@ export default function CheckoutModal({
   const [isPaid, setIsPaid] = useState(true)
   const [copiedBank, setCopiedBank] = useState(false)
 
-  if (!isOpen) return null
+  if (!isOpen || !store) return null
 
-  // Calculate items and total
+  // Calculate items and total for this store
   const items = []
   let total = 0
   for (const [id, qty] of Object.entries(cart)) {
@@ -31,7 +31,7 @@ export default function CheckoutModal({
   }
 
   const handleCopyBank = () => {
-    navigator.clipboard.writeText(settings.bankNumber)
+    navigator.clipboard.writeText(store.bankNumber)
     setCopiedBank(true)
     setTimeout(() => setCopiedBank(false), 2000)
   }
@@ -43,7 +43,6 @@ export default function CheckoutModal({
       return
     }
 
-    // Trigger celebration confetti
     try {
       confetti({
         particleCount: 80,
@@ -53,19 +52,20 @@ export default function CheckoutModal({
     } catch (_) {}
 
     onSubmitOrder({
+      storeId: store.id,
       name: buyerName.trim(),
       notes: buyerNotes.trim(),
-      method: payMethod === 'qris' ? 'QRIS' : `Transfer ${settings.bankName}`,
+      method: payMethod === 'qris' ? 'QRIS' : `Transfer ${store.bankName}`,
       isPaid,
       items,
       total
     })
 
-    // Format WhatsApp message
+    // Format WhatsApp message to THIS seller
     const itemsLines = items.map(i => `• ${i.qty}x ${i.name} (Rp ${i.subtotal.toLocaleString('id-ID')})`).join('\n')
-    let text = `Halo! Mau konfirmasi pesanan jastip *${settings.storeTitle}* yaa ✨\n\n`
-    text += `📅 *Pengantaran:* ${settings.deliveryDate} (${settings.deliveryTime})\n`
-    text += `📍 *Ambil di:* ${settings.pickupLocation}\n\n`
+    let text = `Halo! Mau konfirmasi pesanan jastip *${store.name}* yaa ✨\n\n`
+    text += `📅 *Pengantaran:* ${store.deliveryDate} (${store.deliveryTime})\n`
+    text += `📍 *Ambil di:* ${store.pickupLocation}\n\n`
     text += `👤 *Nama:* ${buyerName.trim()}\n`
     text += `📋 *Pesanan:* \n${itemsLines}\n\n`
     if (buyerNotes.trim()) {
@@ -75,8 +75,7 @@ export default function CheckoutModal({
     text += `💳 *Status Bayar:* ${isPaid ? 'SUDAH BAYAR VIA QRIS / TRANSFER ✅' : 'Belum Bayar (Segera Transfer)'}\n\n`
     text += `Mohon dicatat yaa, terima kasih banyak! 🙏`
 
-    // Open WhatsApp URL
-    const waUrl = `https://wa.me/${settings.sellerPhone}?text=${encodeURIComponent(text)}`
+    const waUrl = `https://wa.me/${store.sellerPhone}?text=${encodeURIComponent(text)}`
     window.open(waUrl, '_blank')
 
     onClose()
@@ -88,10 +87,13 @@ export default function CheckoutModal({
         
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-            <span>🛍️</span>
-            <span>Selesaikan Pesanan & Bayar</span>
-          </h3>
+          <div>
+            <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+              <span>🛍️</span>
+              <span>Selesaikan Pesanan & Bayar</span>
+            </h3>
+            <span className="text-[10px] text-slate-400">Jastip di {store.name}</span>
+          </div>
           <button 
             onClick={onClose} 
             className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold hover:bg-slate-200 flex items-center justify-center text-sm bouncy-tap"
@@ -171,7 +173,7 @@ export default function CheckoutModal({
           {payMethod === 'qris' && (
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500">Scan QRIS: <strong className="text-slate-800">{settings.paymentName}</strong></span>
+                <span className="text-slate-500">Scan QRIS: <strong className="text-slate-800">{store.paymentName || store.ownerName}</strong></span>
                 <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">All E-Wallet</span>
               </div>
               
@@ -179,7 +181,7 @@ export default function CheckoutModal({
                 <div className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 text-white text-center">
                   <QrCode className="w-10 h-10 mb-1 text-emerald-400" />
                   <span className="text-[9px] font-black uppercase tracking-wider">QRIS STANDAR</span>
-                  <span className="text-[8px] opacity-75 font-mono">{settings.qrisNmid}</span>
+                  <span className="text-[8px] opacity-75 font-mono">{store.qrisNmid}</span>
                 </div>
               </div>
               <div className="text-[11px] text-slate-500">
@@ -194,8 +196,8 @@ export default function CheckoutModal({
               <span className="text-slate-400 text-[10px] block">Transfer ke Rekening:</span>
               <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200">
                 <div>
-                  <span className="font-bold text-slate-800 block">{settings.bankName} • {settings.bankNumber}</span>
-                  <span className="text-[10px] text-slate-500">a/n {settings.paymentName}</span>
+                  <span className="font-bold text-slate-800 block">{store.bankName} • {store.bankNumber}</span>
+                  <span className="text-[10px] text-slate-500">a/n {store.paymentName || store.ownerName}</span>
                 </div>
                 <button 
                   type="button"
@@ -232,7 +234,7 @@ export default function CheckoutModal({
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold py-3 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 bouncy-tap"
           >
             <Send className="w-4 h-4" />
-            <span>Kirim Pesanan ke WhatsApp Penjual</span>
+            <span>Kirim Pesanan ke WhatsApp {store.ownerName}</span>
           </button>
         </div>
 

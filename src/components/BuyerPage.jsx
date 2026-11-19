@@ -1,18 +1,21 @@
 import React from 'react'
-import { Calendar, MapPin, Clock, ArrowRight, Plus, Minus, QrCode } from 'lucide-react'
+import { Calendar, MapPin, Clock, ArrowRight, Plus, Minus, QrCode, ArrowLeft } from 'lucide-react'
 
 export default function BuyerPage({ 
-  settings, 
+  store, 
   menus, 
   cart, 
   onUpdateQty, 
-  onOpenCheckout 
+  onOpenCheckout,
+  onBackToDirectory 
 }) {
-  // Calculate cart totals
+  const storeMenus = menus.filter(m => m.storeId === store.id)
+
+  // Calculate cart totals for this store
   let totalQty = 0
   let totalPrice = 0
   for (const [id, qty] of Object.entries(cart)) {
-    const item = menus.find(m => m.id === parseInt(id))
+    const item = storeMenus.find(m => m.id === parseInt(id))
     if (item && qty > 0) {
       totalQty += qty
       totalPrice += item.price * qty
@@ -22,26 +25,43 @@ export default function BuyerPage({
   return (
     <div className="flex-1 flex flex-col overflow-y-auto relative pb-28">
       
+      {/* Top Navigation Back to All Stores */}
+      <div className="px-4 py-2 bg-slate-900 text-white flex items-center justify-between text-xs">
+        <button 
+          onClick={onBackToDirectory}
+          className="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold bouncy-tap"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Lihat Semua Jastip</span>
+        </button>
+
+        <span className="text-[10px] text-slate-400">
+          Lapak: <strong className="text-white">{store.name}</strong>
+        </span>
+      </div>
+
       {/* Banner Hero Jago Vibes */}
       <div className="px-5 pt-4 pb-6 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-b-[32px] shadow-lg shadow-indigo-100 relative overflow-hidden">
-        <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 select-none pointer-events-none">🍲</div>
+        <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 select-none pointer-events-none">
+          {store.icon || '🍲'}
+        </div>
         
         {/* Top Badges */}
         <div className="flex items-center justify-between mb-3">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span>OPEN PO BUAT BESOK</span>
+            <span>OPEN PO</span>
           </span>
           <span className="text-[11px] font-medium text-white/90 bg-black/20 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Clock className="w-3 h-3 text-amber-300" />
-            <span>Tutup: <strong className="text-amber-300">{settings.cutoffTime}</strong></span>
+            <span>Tutup: <strong className="text-amber-300">{store.cutoffTime}</strong></span>
           </span>
         </div>
 
         {/* Store Title */}
-        <h2 className="text-xl font-extrabold tracking-tight">{settings.storeTitle} 👩‍🍳</h2>
-        <p className="text-xs text-purple-100 mt-1 leading-relaxed">
-          Pesan langsung lewat link ini yaa, bayar sat-set via QRIS!
+        <h2 className="text-xl font-extrabold tracking-tight">{store.name}</h2>
+        <p className="text-xs text-purple-100 mt-0.5 leading-relaxed">
+          Oleh <strong className="text-white">{store.ownerName}</strong> • {store.category}
         </p>
 
         {/* Schedule & Pickup Point Card */}
@@ -51,7 +71,7 @@ export default function BuyerPage({
             <div className="min-w-0">
               <span className="text-white/70 block text-[10px]">Makanan Datang</span>
               <span className="font-bold text-white text-xs block truncate">
-                {settings.deliveryDate} ({settings.deliveryTime})
+                {store.deliveryDate} ({store.deliveryTime})
               </span>
             </div>
           </div>
@@ -61,21 +81,21 @@ export default function BuyerPage({
             <div className="min-w-0">
               <span className="text-white/70 block text-[10px]">Titik Ambil</span>
               <span className="font-bold text-white text-xs block truncate">
-                {settings.pickupLocation}
+                {store.pickupLocation}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Info Banner QRIS */}
+      {/* Info Banner QRIS Toko Ini */}
       <div className="px-5 pt-4 pb-1">
         <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-2.5 flex items-center gap-2.5 text-xs text-emerald-900 shadow-sm">
           <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
             <QrCode className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-medium leading-tight">
-            Langsung bayar via <strong>QRIS</strong> atau <strong>{settings.bankName}</strong> pas checkout biar gak kelupaan!
+            Bayar langsung ke {store.ownerName} via <strong>QRIS</strong> atau <strong>{store.bankName}</strong>!
           </span>
         </div>
       </div>
@@ -84,71 +104,79 @@ export default function BuyerPage({
       <div className="px-5 pt-3 pb-2 flex items-center justify-between">
         <h3 className="font-bold text-slate-800 text-sm">Pilihan Menu Hari Ini</h3>
         <span className="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2.5 py-0.5 rounded-full">
-          {menus.length} Menu Tersedia
+          {storeMenus.length} Menu Tersedia
         </span>
       </div>
 
       {/* Menu Food Cards */}
       <div className="px-4 space-y-3">
-        {menus.map(item => {
-          const qty = cart[item.id] || 0
-          const sisa = item.quota - qty
+        {storeMenus.length === 0 ? (
+          <div className="text-center py-8 bg-slate-50 rounded-3xl border border-slate-200/80 p-5">
+            <span className="text-3xl block mb-2">🍽️</span>
+            <p className="font-bold text-xs text-slate-700">Belum ada menu yang di-open</p>
+            <p className="text-[11px] text-slate-400 mt-1">Lapak ini sedang menyiapkan menu baru yaa</p>
+          </div>
+        ) : (
+          storeMenus.map(item => {
+            const qty = cart[item.id] || 0
+            const sisa = item.quota - qty
 
-          return (
-            <div 
-              key={item.id} 
-              className="bg-white border border-slate-200/90 hover:border-brand-300 rounded-3xl p-3.5 transition-all shadow-sm flex items-center justify-between gap-3"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-3xl shrink-0 shadow-inner">
-                  {item.icon}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className="font-bold text-xs text-slate-800 truncate">{item.name}</h4>
-                    {item.badge && (
-                      <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full shrink-0">
-                        {item.badge}
+            return (
+              <div 
+                key={item.id} 
+                className="bg-white border border-slate-200/90 hover:border-brand-300 rounded-3xl p-3.5 transition-all shadow-sm flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-3xl shrink-0 shadow-inner">
+                    {item.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-bold text-xs text-slate-800 truncate">{item.name}</h4>
+                      {item.badge && (
+                        <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full shrink-0">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{item.desc}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-xs font-extrabold text-brand-700">
+                        Rp {item.price.toLocaleString('id-ID')}
                       </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{item.desc}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-xs font-extrabold text-brand-700">
-                      Rp {item.price.toLocaleString('id-ID')}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-400">
-                      • Sisa {sisa} porsi
-                    </span>
+                      <span className="text-[10px] font-medium text-slate-400">
+                        • Sisa {sisa} porsi
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Quantity Action Buttons */}
-              <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 border border-slate-200/80 p-1 rounded-2xl">
-                {qty > 0 && (
-                  <>
-                    <button 
-                      onClick={() => onUpdateQty(item.id, -1)}
-                      className="w-7 h-7 rounded-xl bg-white text-slate-700 font-bold flex items-center justify-center text-sm shadow-sm hover:bg-slate-100 bouncy-tap"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-xs font-extrabold text-slate-800 w-5 text-center">
-                      {qty}
-                    </span>
-                  </>
-                )}
-                <button 
-                  onClick={() => onUpdateQty(item.id, 1)}
-                  className="w-7 h-7 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shadow-brand-200 bouncy-tap"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+                {/* Quantity Action Buttons */}
+                <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 border border-slate-200/80 p-1 rounded-2xl">
+                  {qty > 0 && (
+                    <>
+                      <button 
+                        onClick={() => onUpdateQty(item.id, -1)}
+                        className="w-7 h-7 rounded-xl bg-white text-slate-700 font-bold flex items-center justify-center text-sm shadow-sm hover:bg-slate-100 bouncy-tap"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-xs font-extrabold text-slate-800 w-5 text-center">
+                        {qty}
+                      </span>
+                    </>
+                  )}
+                  <button 
+                    onClick={() => onUpdateQty(item.id, 1)}
+                    className="w-7 h-7 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shadow-brand-200 bouncy-tap"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
 
       {/* Floating Bottom Cart Bar */}

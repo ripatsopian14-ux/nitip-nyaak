@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { X, Plus, UtensilsCrossed } from 'lucide-react'
 
-export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
+export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [quota, setQuota] = useState('10')
@@ -9,7 +9,7 @@ export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
   const [badge, setBadge] = useState('Menu Baru ✨')
   const [desc, setDesc] = useState('')
 
-  if (!isOpen) return null
+  if (!isOpen || !store) return null
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -19,6 +19,7 @@ export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
     }
 
     onAddMenu({
+      storeId: store.id,
       name: name.trim(),
       price: parseInt(price) || 15000,
       quota: parseInt(quota) || 10,
@@ -41,10 +42,13 @@ export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
         
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-            <UtensilsCrossed className="w-4 h-4 text-brand-600" />
-            <span>Tambah Menu Jastip Baru</span>
-          </h3>
+          <div>
+            <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+              <UtensilsCrossed className="w-4 h-4 text-brand-600" />
+              <span>Tambah Menu Jastip Baru</span>
+            </h3>
+            <span className="text-[10px] text-slate-400">Untuk {store.name}</span>
+          </div>
           <button 
             onClick={onClose} 
             className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold hover:bg-slate-200 flex items-center justify-center text-sm bouncy-tap"
@@ -61,7 +65,7 @@ export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Contoh: Nasi Bakar Tongkol Pedas" 
+              placeholder="Contoh: Pempek Kulit Crispy" 
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
               required
             />
@@ -121,7 +125,7 @@ export default function AddMenuModal({ isOpen, onClose, onAddMenu }) {
               type="text" 
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              placeholder="Gurih mantap, sambel terasi melimpah" 
+              placeholder="Gurih mantap, cuko kental pedas manis" 
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
             />
           </div>

@@ -1,81 +1,134 @@
 import React, { useState, useEffect } from 'react'
+import HomeStoreList from './components/HomeStoreList'
 import BuyerPage from './components/BuyerPage'
 import AdminPage from './components/AdminPage'
 import CheckoutModal from './components/CheckoutModal'
 import AddMenuModal from './components/AddMenuModal'
-import AdminPinModal from './components/AdminPinModal'
-import { Lock, ShieldCheck } from 'lucide-react'
+import AdminLoginModal from './components/AdminLoginModal'
+import RegisterStoreModal from './components/RegisterStoreModal'
 import { 
-  apiGetSettings,
-  apiSaveSettings,
+  apiGetStores,
+  apiSaveStore,
   apiGetMenus,
   apiSaveMenu,
   apiDeleteMenu,
   apiGetOrders,
   apiCreateOrder,
   apiTogglePayment,
-  getAdminAuth,
-  setAdminAuth,
+  getLoggedAdminStoreId,
+  setLoggedAdminStoreId,
   supabase,
   isSupabaseConfigured
 } from './services/storage'
 
 export default function App() {
-  const [settings, setSettings] = useState(null)
+  const [stores, setStores] = useState([])
   const [menus, setMenus] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Navigation & Role State
-  const [isAdminView, setIsAdminView] = useState(false)
-  const [isAdminAuth, setIsAdminAuthState] = useState(getAdminAuth())
-  const [isPinModalOpen, setIsPinModalOpen] = useState(false)
+  // Navigation State
+  // viewMode: 'directory' | 'buyer' | 'admin'
+  const [viewMode, setViewMode] = useState('directory')
+  const [activeStore, setActiveStore] = useState(null)
+  const [adminStore, setAdminStore] = useState(null)
 
   // Cart & Modals
   const [cart, setCart] = useState({})
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
+  const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
 
-  // Load Initial Data from API/LocalStorage
+  // Load Data and Route on Mount
   useEffect(() => {
     async function init() {
       setLoading(true)
-      const [s, m, o] = await Promise.all([
-        apiGetSettings(),
+      const [sList, mList, oList] = await Promise.all([
+        apiGetStores(),
         apiGetMenus(),
         apiGetOrders()
       ])
-      setSettings(s)
-      setMenus(m)
-      setOrders(o)
+      setStores(sList)
+      setMenus(mList)
+      setOrders(oList)
+
+      // Check Saved Admin Session
+      const savedAdminId = getLoggedAdminStoreId()
+      const foundAdmin = sList.find(s => s.id === savedAdminId)
+      if (foundAdmin) {
+        setAdminStore(foundAdmin)
+      }
+
+      // Route handling via URL Hash or Path
+      handleRoute(sList, foundAdmin)
       setLoading(false)
     }
     init()
 
-    // Check if URL directly points to /admin or #admin
-    const path = window.location.pathname.toLowerCase()
-    const hash = window.location.hash.toLowerCase()
-    if (path.includes('admin') || hash.includes('admin')) {
-      if (getAdminAuth()) {
-        setIsAdminView(true)
-      } else {
-        setIsPinModalOpen(true)
-      }
+    // Listen to hash changes
+    const onHashChange = () => {
+      apiGetStores().then(sList => {
+        handleRoute(sList, adminStore)
+      })
     }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  // Setup Supabase Realtime Listener (Jika Supabase aktif)
+  // Route Parser
+  const handleRoute = (storeList, currentAdmin) => {
+    const hash = window.location.hash.toLowerCase()
+    const path = window.location.pathname.toLowerCase()
+
+    // 1. Direct Store Link (e.g. #/toko/mamah-latif or /toko/mamah-latif)
+    const storeMatch = hash.match(/#\/?toko\/([\w-]+)/) || path.match(/\/toko\/([\w-]+)/)
+    if (storeMatch && storeMatch[1]) {
+      const slug = storeMatch[1]
+      const targetStore = storeList.find(s => s.slug === slug || s.id === slug)
+      if (targetStore) {
+        setActiveStore(targetStore)
+        setViewMode('buyer')
+        return
+      }
+    }
+
+    // 2. Admin Link (e.g. #/admin or /admin)
+    if (hash.includes('admin') || path.includes('admin')) {
+      if (currentAdmin) {
+        setAdminStore(currentAdmin)
+        setViewMode('admin')
+      } else {
+        setIsAdminLoginOpen(true)
+      }
+      return
+    }
+
+    // 3. Default to Directory
+    setViewMode('directory')
+    setActiveStore(null)
+  }
+
+  // Setup Supabase Realtime Listener
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return
 
     const channel = supabase
-      .channel('realtime-orders')
+      .channel('realtime-multi-store')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         async () => {
           const latestOrders = await apiGetOrders()
           setOrders(latestOrders)
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stores' },
+        async () => {
+          const latestStores = await apiGetStores()
+          setStores(latestStores)
         }
       )
       .subscribe()
@@ -85,7 +138,7 @@ export default function App() {
     }
   }, [])
 
-  // Cart Operations
+  // Cart Handlers
   const handleUpdateQty = (id, delta) => {
     setCart(prev => {
       const current = prev[id] || 0
@@ -99,26 +152,28 @@ export default function App() {
     })
   }
 
-  // Submit Order from Buyer
+  // Submit Order
   const handleSubmitOrder = async (orderData) => {
     const updated = await apiCreateOrder(orderData)
     setOrders(updated)
     setCart({})
   }
 
-  // Admin Actions
-  const handleUpdateSettings = async (newSettings) => {
-    setSettings(newSettings)
-    await apiSaveSettings(newSettings)
+  // Admin Store Updates
+  const handleUpdateStore = async (updatedStore) => {
+    setAdminStore(updatedStore)
+    const updatedList = await apiSaveStore(updatedStore)
+    setStores(updatedList)
   }
 
+  // Admin Add / Delete Menu
   const handleAddMenu = async (newMenu) => {
     const updated = await apiSaveMenu(newMenu)
     setMenus(updated)
   }
 
   const handleDeleteMenu = async (id) => {
-    if (confirm("Yakin mau hapus menu ini dari jastip?")) {
+    if (confirm("Hapus menu ini dari lapakmu?")) {
       const updated = await apiDeleteMenu(id)
       setMenus(updated)
       setCart(prev => {
@@ -136,28 +191,46 @@ export default function App() {
     setOrders(updated)
   }
 
-  // PIN Authentication Success
-  const handlePinSuccess = () => {
-    setAdminAuth(true)
-    setIsAdminAuthState(true)
-    setIsPinModalOpen(false)
-    setIsAdminView(true)
-    window.location.hash = '#admin'
+  // Navigation handlers
+  const handleSelectStore = (store) => {
+    setActiveStore(store)
+    setViewMode('buyer')
+    setCart({})
+    window.location.hash = `#/toko/${store.slug || store.id}`
   }
 
-  const handleExitToBuyer = () => {
-    setIsAdminView(false)
+  const handleBackToDirectory = () => {
+    setViewMode('directory')
+    setActiveStore(null)
+    setCart({})
     window.location.hash = ''
+  }
+
+  const handleAdminLoginSuccess = (store) => {
+    setAdminStore(store)
+    setLoggedAdminStoreId(store.id)
+    setViewMode('admin')
+    window.location.hash = '#/admin'
   }
 
   const handleLogoutAdmin = () => {
-    setAdminAuth(false)
-    setIsAdminAuthState(false)
-    setIsAdminView(false)
+    setAdminStore(null)
+    setLoggedAdminStoreId(null)
+    setViewMode('directory')
     window.location.hash = ''
   }
 
-  if (loading || !settings) {
+  const handleRegisterSuccess = async (newStore) => {
+    const updatedList = await apiSaveStore(newStore)
+    setStores(updatedList)
+    setAdminStore(newStore)
+    setLoggedAdminStoreId(newStore.id)
+    setViewMode('admin')
+    window.location.hash = '#/admin'
+    alert(`🎉 Selamat! Lapak "${newStore.name}" sudah aktif! Kamu bisa langsung atur menu dan sebarkan link tokomu ke WhatsApp.`)
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#F8F9FD] flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white flex items-center justify-center text-2xl animate-bounce">
@@ -171,39 +244,39 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-slate-800 flex flex-col items-center p-3 md:p-6 font-sans">
       
-      {/* Top Header */}
+      {/* Top Navbar */}
       <div className="w-full max-w-md mb-3 flex items-center justify-between gap-3 bg-white border border-slate-200/80 rounded-3xl p-3 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-lg shadow-md shadow-orange-200 shrink-0">
+        <div 
+          onClick={handleBackToDirectory}
+          className="flex items-center gap-2.5 cursor-pointer group"
+        >
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-lg shadow-md shadow-orange-200 shrink-0 group-hover:scale-105 transition-transform">
             🍲
           </div>
           <div>
-            <h1 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none">
-              Nitip Nyaak! ✨
+            <h1 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none flex items-center gap-1">
+              <span>Nitip Nyaak!</span>
+              <span className="text-[10px] text-amber-500">✨</span>
             </h1>
             <p className="text-[10px] text-slate-500 font-medium mt-0.5">
-              Jastip makanan anti-ribet
+              Jastip makanan kantor & komunitas
             </p>
           </div>
         </div>
 
-        {/* Status Indicator */}
-        <div className="flex items-center gap-1.5 text-[10px] bg-slate-50 border border-slate-200/70 px-2.5 py-1 rounded-full text-slate-600 font-medium">
-          {isAdminView ? (
-            <span className="flex items-center gap-1 text-brand-700 font-bold">
-              <ShieldCheck className="w-3 h-3" />
-              <span>Admin Mode</span>
-            </span>
+        {/* View Indicator */}
+        <div className="flex items-center gap-1.5 text-[10px] bg-slate-50 border border-slate-200/70 px-2.5 py-1 rounded-full text-slate-600 font-bold">
+          {viewMode === 'admin' ? (
+            <span className="text-brand-700">👨‍🍳 Kelola Lapak</span>
+          ) : viewMode === 'buyer' ? (
+            <span className="text-emerald-700">😋 Mau Jajan</span>
           ) : (
-            <span className="flex items-center gap-1 text-emerald-700 font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Menu Buka</span>
-            </span>
+            <span className="text-slate-700">🏪 {stores.length} Lapak Buka</span>
           )}
         </div>
       </div>
 
-      {/* Main Container Card */}
+      {/* Main Mobile App Card Frame */}
       <div className="w-full max-w-md bg-white border-4 border-slate-900/10 rounded-[38px] shadow-2xl shadow-slate-200/60 overflow-hidden relative flex flex-col min-h-[680px] max-h-[850px]">
         
         {/* Status Bar Mobile Mockup */}
@@ -218,50 +291,39 @@ export default function App() {
           </div>
         </div>
 
-        {/* View Switcher: Admin vs Buyer */}
-        {isAdminView ? (
+        {/* Dynamic Views */}
+        {viewMode === 'admin' && adminStore ? (
           <AdminPage 
-            settings={settings}
-            onUpdateSettings={handleUpdateSettings}
+            store={adminStore}
+            onUpdateStore={handleUpdateStore}
             menus={menus}
             onDeleteMenu={handleDeleteMenu}
             onOpenAddMenu={() => setIsAddMenuOpen(true)}
             orders={orders}
             onTogglePayment={handleTogglePayment}
-            onExitToBuyer={handleExitToBuyer}
+            onExitToBuyer={() => handleSelectStore(adminStore)}
             onLogout={handleLogoutAdmin}
           />
-        ) : (
+        ) : viewMode === 'buyer' && activeStore ? (
           <BuyerPage 
-            settings={settings}
+            store={activeStore}
             menus={menus}
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onOpenCheckout={() => setIsCheckoutOpen(true)}
+            onBackToDirectory={handleBackToDirectory}
+          />
+        ) : (
+          <HomeStoreList 
+            stores={stores}
+            menus={menus}
+            onSelectStore={handleSelectStore}
+            onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
+            onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
           />
         )}
 
       </div>
-
-      {/* Discreet Footer Link for Seller Access */}
-      {!isAdminView && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => {
-              if (isAdminAuth) {
-                setIsAdminView(true)
-                window.location.hash = '#admin'
-              } else {
-                setIsPinModalOpen(true)
-              }
-            }}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-brand-600 py-1 px-3 rounded-full hover:bg-white transition-all bouncy-tap"
-          >
-            <Lock className="w-3 h-3" />
-            <span>Akses Khusus Mamah (Penjual)</span>
-          </button>
-        </div>
-      )}
 
       {/* Modals */}
       <CheckoutModal 
@@ -269,21 +331,28 @@ export default function App() {
         onClose={() => setIsCheckoutOpen(false)}
         cart={cart}
         menus={menus}
-        settings={settings}
+        store={activeStore}
         onSubmitOrder={handleSubmitOrder}
       />
 
       <AddMenuModal 
         isOpen={isAddMenuOpen}
         onClose={() => setIsAddMenuOpen(false)}
+        store={adminStore}
         onAddMenu={handleAddMenu}
       />
 
-      <AdminPinModal 
-        isOpen={isPinModalOpen}
-        onClose={() => setIsPinModalOpen(false)}
-        onAuthSuccess={handlePinSuccess}
-        correctPin={settings.adminPin || "1234"}
+      <AdminLoginModal 
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        stores={stores}
+        onLoginSuccess={handleAdminLoginSuccess}
+      />
+
+      <RegisterStoreModal 
+        isOpen={isRegisterStoreOpen}
+        onClose={() => setIsRegisterStoreOpen(false)}
+        onRegisterSuccess={handleRegisterSuccess}
       />
 
     </div>
