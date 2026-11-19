@@ -6,6 +6,7 @@ import CheckoutModal from './components/CheckoutModal'
 import AddMenuModal from './components/AddMenuModal'
 import AdminLoginModal from './components/AdminLoginModal'
 import RegisterStoreModal from './components/RegisterStoreModal'
+import { PlusCircle, Lock, Store } from 'lucide-react'
 import { 
   apiGetStores,
   apiSaveStore,
@@ -27,20 +28,19 @@ export default function App() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Navigation State
-  // viewMode: 'directory' | 'buyer' | 'admin'
+  // Navigation State: 'directory' | 'buyer' | 'admin'
   const [viewMode, setViewMode] = useState('directory')
   const [activeStore, setActiveStore] = useState(null)
   const [adminStore, setAdminStore] = useState(null)
 
-  // Cart & Modals
+  // Modals & Cart
   const [cart, setCart] = useState({})
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
   const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
 
-  // Load Data and Route on Mount
+  // Load Data on Mount
   useEffect(() => {
     async function init() {
       setLoading(true)
@@ -53,20 +53,17 @@ export default function App() {
       setMenus(mList)
       setOrders(oList)
 
-      // Check Saved Admin Session
       const savedAdminId = getLoggedAdminStoreId()
       const foundAdmin = sList.find(s => s.id === savedAdminId)
       if (foundAdmin) {
         setAdminStore(foundAdmin)
       }
 
-      // Route handling via URL Hash or Path
       handleRoute(sList, foundAdmin)
       setLoading(false)
     }
     init()
 
-    // Listen to hash changes
     const onHashChange = () => {
       apiGetStores().then(sList => {
         handleRoute(sList, adminStore)
@@ -81,7 +78,7 @@ export default function App() {
     const hash = window.location.hash.toLowerCase()
     const path = window.location.pathname.toLowerCase()
 
-    // 1. Direct Store Link (e.g. #/toko/mamah-latif or /toko/mamah-latif)
+    // 1. Direct Store Link (e.g. #/toko/mamah-latif)
     const storeMatch = hash.match(/#\/?toko\/([\w-]+)/) || path.match(/\/toko\/([\w-]+)/)
     if (storeMatch && storeMatch[1]) {
       const slug = storeMatch[1]
@@ -93,7 +90,7 @@ export default function App() {
       }
     }
 
-    // 2. Admin Link (e.g. #/admin or /admin)
+    // 2. Admin Link
     if (hash.includes('admin') || path.includes('admin')) {
       if (currentAdmin) {
         setAdminStore(currentAdmin)
@@ -109,7 +106,7 @@ export default function App() {
     setActiveStore(null)
   }
 
-  // Setup Supabase Realtime Listener
+  // Realtime Supabase Listener
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return
 
@@ -138,7 +135,7 @@ export default function App() {
     }
   }, [])
 
-  // Cart Handlers
+  // Cart Operations
   const handleUpdateQty = (id, delta) => {
     setCart(prev => {
       const current = prev[id] || 0
@@ -166,7 +163,7 @@ export default function App() {
     setStores(updatedList)
   }
 
-  // Admin Add / Delete Menu
+  // Add / Delete Menu
   const handleAddMenu = async (newMenu) => {
     const updated = await apiSaveMenu(newMenu)
     setMenus(updated)
@@ -227,71 +224,97 @@ export default function App() {
     setLoggedAdminStoreId(newStore.id)
     setViewMode('admin')
     window.location.hash = '#/admin'
-    alert(`🎉 Selamat! Lapak "${newStore.name}" sudah aktif! Kamu bisa langsung atur menu dan sebarkan link tokomu ke WhatsApp.`)
+    alert(`🎉 Selamat! Lapak "${newStore.name}" berhasil dibuat! Kamu bisa langsung atur menu makanan dan bagikan link lapakmu ke grup WA.`)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FD] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white flex items-center justify-center text-2xl animate-bounce">
+      <div className="min-h-screen bg-[#F8F9FD] flex flex-col items-center justify-center p-4 font-sans">
+        <div className="w-14 h-14 rounded-3xl bg-brand-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-brand-200 animate-bounce">
           🍲
         </div>
-        <p className="text-xs font-bold text-slate-500 mt-3">Memuat Nitip Nyaak!...</p>
+        <p className="text-sm font-bold text-slate-700 mt-3">Memuat Nitip Nyaak!...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FD] text-slate-800 flex flex-col items-center p-3 md:p-6 font-sans">
+    <div className="min-h-screen bg-[#F8F9FD] text-slate-800 flex flex-col font-sans antialiased">
       
-      {/* Top Navbar */}
-      <div className="w-full max-w-md mb-3 flex items-center justify-between gap-3 bg-white border border-slate-200/80 rounded-3xl p-3 shadow-sm">
-        <div 
-          onClick={handleBackToDirectory}
-          className="flex items-center gap-2.5 cursor-pointer group"
-        >
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-lg shadow-md shadow-orange-200 shrink-0 group-hover:scale-105 transition-transform">
-            🍲
+      {/* NAVBAR MODERN, BERSIH & LUAS (TIDAK MEPEK / BUKAN HP BEZEL) */}
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5 sm:px-6 shadow-sm">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+          
+          {/* Logo & Brand */}
+          <div 
+            onClick={handleBackToDirectory}
+            className="flex items-center gap-3 cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-xl shadow-md shadow-orange-200 shrink-0 group-hover:scale-105 transition-transform">
+              🍲
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-extrabold text-base md:text-lg text-slate-900 tracking-tight leading-none">
+                  Nitip Nyaak!
+                </h1>
+                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200/60 px-2 py-0.2 rounded-full">
+                  Komunitas
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5 hidden sm:block">
+                Jastip makanan kantor & kampus anti-ribet
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none flex items-center gap-1">
-              <span>Nitip Nyaak!</span>
-              <span className="text-[10px] text-amber-500">✨</span>
-            </h1>
-            <p className="text-[10px] text-slate-500 font-medium mt-0.5">
-              Jastip makanan kantor & komunitas
-            </p>
+
+          {/* Quick Actions in Navbar */}
+          <div className="flex items-center gap-2">
+            {viewMode === 'directory' ? (
+              <>
+                <button
+                  onClick={() => setIsRegisterStoreOpen(true)}
+                  className="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm shadow-brand-200 flex items-center gap-1.5 bouncy-tap"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Buka Lapak</span>
+                  <span className="sm:hidden">+ Lapak</span>
+                </button>
+
+                {stores.length > 0 && (
+                  <button
+                    onClick={() => setIsAdminLoginOpen(true)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap"
+                    title="Masuk ke Lapak Saya"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="hidden sm:inline">Kelola Lapak</span>
+                  </button>
+                )}
+              </>
+            ) : viewMode === 'buyer' ? (
+              <button
+                onClick={handleBackToDirectory}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap"
+              >
+                <span>← Semua Lapak</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleLogoutAdmin}
+                className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap"
+              >
+                <span>Keluar Admin</span>
+              </button>
+            )}
           </div>
-        </div>
 
-        {/* View Indicator */}
-        <div className="flex items-center gap-1.5 text-[10px] bg-slate-50 border border-slate-200/70 px-2.5 py-1 rounded-full text-slate-600 font-bold">
-          {viewMode === 'admin' ? (
-            <span className="text-brand-700">👨‍🍳 Kelola Lapak</span>
-          ) : viewMode === 'buyer' ? (
-            <span className="text-emerald-700">😋 Mau Jajan</span>
-          ) : (
-            <span className="text-slate-700">🏪 {stores.length} Lapak Buka</span>
-          )}
         </div>
-      </div>
+      </header>
 
-      {/* Main Mobile App Card Frame */}
-      <div className="w-full max-w-md bg-white border-4 border-slate-900/10 rounded-[38px] shadow-2xl shadow-slate-200/60 overflow-hidden relative flex flex-col min-h-[680px] max-h-[850px]">
+      {/* MAIN CONTENT AREA - RESPONSIVE & LUAS */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-8">
         
-        {/* Status Bar Mobile Mockup */}
-        <div className="bg-white px-7 pt-3.5 pb-2 flex justify-between items-center text-[11px] text-slate-700 font-semibold select-none">
-          <span>09:41</span>
-          <div className="w-24 h-4 bg-slate-100 rounded-full flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-slate-300"></div>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-600">
-            <span>5G</span>
-            <span>🔋</span>
-          </div>
-        </div>
-
-        {/* Dynamic Views */}
         {viewMode === 'admin' && adminStore ? (
           <AdminPage 
             store={adminStore}
@@ -323,9 +346,14 @@ export default function App() {
           />
         )}
 
-      </div>
+      </main>
 
-      {/* Modals */}
+      {/* FOOTER BERSIH */}
+      <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400">
+        <p>🍲 <strong>Nitip Nyaak!</strong> — Solusi titip makan siang kantor & komunitas tanpa pusing rekap.</p>
+      </footer>
+
+      {/* MODALS */}
       <CheckoutModal 
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}

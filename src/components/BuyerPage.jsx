@@ -1,5 +1,5 @@
 import React from 'react'
-import { Calendar, MapPin, Clock, ArrowRight, Plus, Minus, QrCode, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, Clock, ArrowRight, Plus, Minus, QrCode, ArrowLeft, Store } from 'lucide-react'
 
 export default function BuyerPage({ 
   store, 
@@ -23,179 +23,199 @@ export default function BuyerPage({
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto relative pb-28">
+    <div className="space-y-6 pb-28">
       
-      {/* Top Navigation Back to All Stores */}
-      <div className="px-4 py-2 bg-slate-900 text-white flex items-center justify-between text-xs">
+      {/* Top Breadcrumb Navigation */}
+      <div className="flex items-center justify-between">
         <button 
           onClick={onBackToDirectory}
-          className="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold bouncy-tap"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-brand-600 bg-white border border-slate-200/80 px-3.5 py-1.5 rounded-xl shadow-sm transition-all bouncy-tap"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Lihat Semua Jastip</span>
+          <span>Kembali ke Semua Lapak</span>
         </button>
 
-        <span className="text-[10px] text-slate-400">
-          Lapak: <strong className="text-white">{store.name}</strong>
+        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Lapak Buka PO</span>
         </span>
       </div>
 
-      {/* Banner Hero Jago Vibes */}
-      <div className="px-5 pt-4 pb-6 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-b-[32px] shadow-lg shadow-indigo-100 relative overflow-hidden">
-        <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 select-none pointer-events-none">
-          {store.icon || '🍲'}
-        </div>
-        
-        {/* Top Badges */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span>OPEN PO</span>
-          </span>
-          <span className="text-[11px] font-medium text-white/90 bg-black/20 px-2.5 py-1 rounded-full flex items-center gap-1">
-            <Clock className="w-3 h-3 text-amber-300" />
-            <span>Tutup: <strong className="text-amber-300">{store.cutoffTime}</strong></span>
-          </span>
-        </div>
-
-        {/* Store Title */}
-        <h2 className="text-xl font-extrabold tracking-tight">{store.name}</h2>
-        <p className="text-xs text-purple-100 mt-0.5 leading-relaxed">
-          Oleh <strong className="text-white">{store.ownerName}</strong> • {store.category}
-        </p>
-
-        {/* Schedule & Pickup Point Card */}
-        <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px]">
-          <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 flex items-start gap-2">
-            <Calendar className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <span className="text-white/70 block text-[10px]">Makanan Datang</span>
-              <span className="font-bold text-white text-xs block truncate">
-                {store.deliveryDate} ({store.deliveryTime})
-              </span>
+      {/* Store Banner Luas & Bernapas (Bukan Frame HP) */}
+      <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/60 relative overflow-hidden">
+        <div className="relative z-10 space-y-4">
+          
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner">
+                {store.icon || '🍲'}
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-purple-200 font-semibold block">
+                  {store.category}
+                </span>
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                  {store.name}
+                </h2>
+                <p className="text-xs md:text-sm text-purple-100 mt-0.5">
+                  oleh <strong className="text-white">{store.ownerName}</strong>
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-rose-300 shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <span className="text-white/70 block text-[10px]">Titik Ambil</span>
-              <span className="font-bold text-white text-xs block truncate">
-                {store.pickupLocation}
-              </span>
+          {/* Schedule & Pickup Info Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-xs">
+            <div className="bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 flex items-center gap-2.5">
+              <Calendar className="w-4 h-4 text-amber-300 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-white/70 block text-[10px]">Makanan Datang</span>
+                <span className="font-bold text-white text-xs block truncate">
+                  {store.deliveryDate} ({store.deliveryTime})
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 flex items-center gap-2.5">
+              <Clock className="w-4 h-4 text-amber-300 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-white/70 block text-[10px]">Tutup Pesanan (Cut-Off)</span>
+                <span className="font-bold text-white text-xs block truncate">
+                  {store.cutoffTime}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 flex items-center gap-2.5">
+              <MapPin className="w-4 h-4 text-rose-300 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-white/70 block text-[10px]">Titik Ambil</span>
+                <span className="font-bold text-white text-xs block truncate">
+                  {store.pickupLocation}
+                </span>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* Info Banner QRIS Toko Ini */}
-      <div className="px-5 pt-4 pb-1">
-        <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-2.5 flex items-center gap-2.5 text-xs text-emerald-900 shadow-sm">
-          <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-            <QrCode className="w-4 h-4" />
-          </div>
-          <span className="text-[11px] font-medium leading-tight">
-            Bayar langsung ke {store.ownerName} via <strong>QRIS</strong> atau <strong>{store.bankName}</strong>!
+      {/* Info QRIS & Pembayaran */}
+      <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-center gap-3 text-xs text-emerald-900 shadow-sm">
+        <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+          <QrCode className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <span className="font-bold text-slate-800 block text-xs">
+            Pembayaran Mudah Langsung ke Penjual
+          </span>
+          <span className="text-[11px] text-emerald-800">
+            Bisa scan <strong>QRIS</strong> atau transfer <strong>{store.bankName}</strong> ({store.bankNumber}) pas checkout.
           </span>
         </div>
       </div>
 
-      {/* Menu Header */}
-      <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-        <h3 className="font-bold text-slate-800 text-sm">Pilihan Menu Hari Ini</h3>
-        <span className="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2.5 py-0.5 rounded-full">
-          {storeMenus.length} Menu Tersedia
-        </span>
-      </div>
+      {/* Daftar Menu List */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="font-extrabold text-base text-slate-900">
+            Daftar Menu {store.name}
+          </h3>
+          <span className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1 rounded-full">
+            {storeMenus.length} Menu
+          </span>
+        </div>
 
-      {/* Menu Food Cards */}
-      <div className="px-4 space-y-3">
         {storeMenus.length === 0 ? (
-          <div className="text-center py-8 bg-slate-50 rounded-3xl border border-slate-200/80 p-5">
-            <span className="text-3xl block mb-2">🍽️</span>
-            <p className="font-bold text-xs text-slate-700">Belum ada menu yang di-open</p>
-            <p className="text-[11px] text-slate-400 mt-1">Lapak ini sedang menyiapkan menu baru yaa</p>
+          <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center space-y-2">
+            <span className="text-3xl block">🍽️</span>
+            <h4 className="font-bold text-sm text-slate-700">Belum ada menu yang di-open di lapak ini</h4>
+            <p className="text-xs text-slate-400">
+              Penjual ({store.ownerName}) belum menambahkan menu untuk hari ini.
+            </p>
           </div>
         ) : (
-          storeMenus.map(item => {
-            const qty = cart[item.id] || 0
-            const sisa = item.quota - qty
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {storeMenus.map(item => {
+              const qty = cart[item.id] || 0
+              const sisa = item.quota - qty
 
-            return (
-              <div 
-                key={item.id} 
-                className="bg-white border border-slate-200/90 hover:border-brand-300 rounded-3xl p-3.5 transition-all shadow-sm flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-3xl shrink-0 shadow-inner">
-                    {item.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-bold text-xs text-slate-800 truncate">{item.name}</h4>
-                      {item.badge && (
-                        <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full shrink-0">
-                          {item.badge}
+              return (
+                <div 
+                  key={item.id} 
+                  className="bg-white border border-slate-200/90 hover:border-brand-300 rounded-3xl p-4 transition-all shadow-sm flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-3xl shrink-0 shadow-inner">
+                      {item.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-xs md:text-sm text-slate-800 truncate">{item.name}</h4>
+                        {item.badge && (
+                          <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full shrink-0">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{item.desc}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-xs md:text-sm font-extrabold text-brand-700">
+                          Rp {item.price.toLocaleString('id-ID')}
                         </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{item.desc}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-xs font-extrabold text-brand-700">
-                        Rp {item.price.toLocaleString('id-ID')}
-                      </span>
-                      <span className="text-[10px] font-medium text-slate-400">
-                        • Sisa {sisa} porsi
-                      </span>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          • Sisa {sisa} porsi
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Quantity Action Buttons */}
-                <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 border border-slate-200/80 p-1 rounded-2xl">
-                  {qty > 0 && (
-                    <>
-                      <button 
-                        onClick={() => onUpdateQty(item.id, -1)}
-                        className="w-7 h-7 rounded-xl bg-white text-slate-700 font-bold flex items-center justify-center text-sm shadow-sm hover:bg-slate-100 bouncy-tap"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-xs font-extrabold text-slate-800 w-5 text-center">
-                        {qty}
-                      </span>
-                    </>
-                  )}
-                  <button 
-                    onClick={() => onUpdateQty(item.id, 1)}
-                    className="w-7 h-7 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shadow-brand-200 bouncy-tap"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Quantity Buttons */}
+                  <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 border border-slate-200/80 p-1.5 rounded-2xl">
+                    {qty > 0 && (
+                      <>
+                        <button 
+                          onClick={() => onUpdateQty(item.id, -1)}
+                          className="w-7 h-7 rounded-xl bg-white text-slate-700 font-bold flex items-center justify-center text-sm shadow-sm hover:bg-slate-100 bouncy-tap"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs font-extrabold text-slate-800 w-5 text-center">
+                          {qty}
+                        </span>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => onUpdateQty(item.id, 1)}
+                      className="w-7 h-7 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold flex items-center justify-center text-sm shadow-sm shadow-brand-200 bouncy-tap"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )
-          })
+              )
+            })}
+          </div>
         )}
       </div>
 
       {/* Floating Bottom Cart Bar */}
       {totalQty > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-white/95 backdrop-blur-lg border-t border-slate-100 shadow-2xl transition-all duration-300 z-40">
-          <div className="flex items-center justify-between">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 shadow-2xl z-40">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-semibold text-slate-500 block">
-                {totalQty} menu masuk keranjang
+              <span className="text-xs font-semibold text-slate-500 block">
+                {totalQty} menu dipilih dari {store.name}
               </span>
-              <span className="text-base font-extrabold text-slate-900">
+              <span className="text-lg font-extrabold text-slate-900">
                 Rp {totalPrice.toLocaleString('id-ID')}
               </span>
             </div>
             <button 
               onClick={onOpenCheckout}
-              className="bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 hover:opacity-95 text-white font-bold text-xs px-5 py-3 rounded-2xl shadow-lg shadow-orange-200 flex items-center gap-2 bouncy-tap"
+              className="bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 hover:opacity-95 text-white font-bold text-xs md:text-sm px-6 py-3 rounded-2xl shadow-lg shadow-orange-200 flex items-center gap-2 bouncy-tap"
             >
-              <span>Bayar & Pesan</span>
+              <span>Bayar & Pesan Sekarang</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

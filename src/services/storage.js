@@ -9,215 +9,16 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-// INITIAL MULTI-STORE DATA
-export const DEFAULT_STORES = [
-  {
-    id: "mamah-dita",
-    slug: "mamah-dita",
-    name: "Dapur Mamah Dita",
-    ownerName: "Dita Pratiwi",
-    category: "Masakan Rumahan 🍲",
-    deliveryDate: "Besok (Jumat, 20 Nov)",
-    deliveryTime: "11:45 WIB",
-    cutoffTime: "Malam ini, jam 21:00",
-    pickupLocation: "Pantry Lantai 3",
-    sellerPhone: "6281234567890",
-    paymentName: "Dita Pratiwi",
-    bankName: "BCA",
-    bankNumber: "5210984421",
-    qrisNmid: "ID10293847592",
-    adminPin: "1234",
-    icon: "🍲",
-    badge: "Paling Favorit 🔥",
-    isOpen: true
-  },
-  {
-    id: "mamah-latif",
-    slug: "mamah-latif",
-    name: "Pempek Asli Mamah Latif",
-    ownerName: "Mamah Latif",
-    category: "Khas Palembang 🥟",
-    deliveryDate: "Besok Siang",
-    deliveryTime: "12:00 WIB",
-    cutoffTime: "Malam ini, jam 20:30",
-    pickupLocation: "Lobi Utama",
-    sellerPhone: "6289876543210",
-    paymentName: "Hj. Latifah",
-    bankName: "Bank Mandiri",
-    bankNumber: "1320098765432",
-    qrisNmid: "ID98765432101",
-    adminPin: "2233",
-    icon: "🥟",
-    badge: "Ikan Tenggiri Asli ⭐",
-    isOpen: true
-  },
-  {
-    id: "bang-dimas",
-    slug: "bang-dimas",
-    name: "Dimsum Mentai Bang Dimas",
-    ownerName: "Dimas Anggoro",
-    category: "Camilan & Mentai 🥢",
-    deliveryDate: "Besok Sore",
-    deliveryTime: "15:00 WIB",
-    cutoffTime: "Besok jam 10:00",
-    pickupLocation: "Meja CS Lantai 1",
-    sellerPhone: "6285678901234",
-    paymentName: "Dimas Anggoro",
-    bankName: "Bank Jago",
-    bankNumber: "500019283746",
-    qrisNmid: "ID55443322110",
-    adminPin: "5566",
-    icon: "🥢",
-    badge: "Spesial Mentai 🔥",
-    isOpen: true
-  }
-]
-
-export const DEFAULT_MENUS = [
-  // Menus Mamah Dita
-  {
-    id: 101,
-    storeId: "mamah-dita",
-    name: "Nasi Bakar Cumi Cabe Ijo",
-    desc: "Gurih nagih, pedas pas, cumi empuk isi melimpah",
-    price: 22000,
-    quota: 10,
-    icon: "🍱",
-    badge: "Paling Laris 🔥"
-  },
-  {
-    id: 102,
-    storeId: "mamah-dita",
-    name: "Ayam Penyet Sambel Bawang",
-    desc: "Ayam bumbu ungkep rempah + lalapan fresh",
-    price: 25000,
-    quota: 8,
-    icon: "🍗",
-    badge: ""
-  },
-  {
-    id: 103,
-    storeId: "mamah-dita",
-    name: "Risol Mayo Smoked Beef (Isi 2)",
-    desc: "Kulit renyah, saus mayo lumer & telur rebus",
-    price: 10000,
-    quota: 15,
-    icon: "🥟",
-    badge: "Camilan Favorit ⭐"
-  },
-  {
-    id: 104,
-    storeId: "mamah-dita",
-    name: "Es Kopi Susu Aren Mamah",
-    desc: "Kopi susu creamy dengan gula aren asli 250ml",
-    price: 12000,
-    quota: 12,
-    icon: "🥤",
-    badge: ""
-  },
-
-  // Menus Mamah Latif
-  {
-    id: 201,
-    storeId: "mamah-latif",
-    name: "Pempek Kapal Selam Jumbo",
-    desc: "Isi telur bebek utuh, cuko kental pedas manis mantap",
-    price: 20000,
-    quota: 12,
-    icon: "🥟",
-    badge: "Wajib Coba 🔥"
-  },
-  {
-    id: 202,
-    storeId: "mamah-latif",
-    name: "Paket Campur (2 Lenjer + 2 Kulit)",
-    desc: "Lenjer kenyal gurih & pempek kulit renyah wangi",
-    price: 24000,
-    quota: 15,
-    icon: "🥢",
-    badge: "Paling Hemat ⭐"
-  },
-  {
-    id: 203,
-    storeId: "mamah-latif",
-    name: "Tekwan Kuah Udang Segar",
-    desc: "Bulatan ikan kenyal kuah kaldu udang + jamur kuping & sohun",
-    price: 18000,
-    quota: 10,
-    icon: "🍲",
-    badge: ""
-  },
-
-  // Menus Bang Dimas
-  {
-    id: 301,
-    storeId: "bang-dimas",
-    name: "Dimsum Ayam Mentai Melted (Isi 4)",
-    desc: "Daging ayam padat saus mentai bakar lumer gurih tobiko",
-    price: 26000,
-    quota: 15,
-    icon: "🥢",
-    badge: "Spesial 🔥"
-  },
-  {
-    id: 302,
-    storeId: "bang-dimas",
-    name: "Siomay Udang Steamed (Isi 4)",
-    desc: "Udang utuh segar kenyal disajikan chili oil gurih",
-    price: 22000,
-    quota: 10,
-    icon: "🥟",
-    badge: ""
-  }
-]
-
-export const DEFAULT_ORDERS = [
-  {
-    id: "PO-001",
-    storeId: "mamah-dita",
-    name: "Budi (Design Lt.2)",
-    items: [{ id: 101, name: "Nasi Bakar Cumi Cabe Ijo", qty: 2, price: 22000 }],
-    notes: "Satu pedas, satu biasa ya",
-    total: 44000,
-    time: "08:45",
-    method: "QRIS",
-    isPaid: false
-  },
-  {
-    id: "PO-002",
-    storeId: "mamah-dita",
-    name: "Sarah (HR)",
-    items: [
-      { id: 102, name: "Ayam Penyet Sambel Bawang", qty: 1, price: 25000 },
-      { id: 103, name: "Risol Mayo Smoked Beef (Isi 2)", qty: 1, price: 10000 }
-    ],
-    notes: "Sambel dipisah",
-    total: 35000,
-    time: "09:12",
-    method: "QRIS",
-    isPaid: true
-  },
-  {
-    id: "PO-003",
-    storeId: "mamah-latif",
-    name: "Rian (Finance)",
-    items: [
-      { id: 201, name: "Pempek Kapal Selam Jumbo", qty: 1, price: 20000 },
-      { id: 203, name: "Tekwan Kuah Udang Segar", qty: 1, price: 18000 }
-    ],
-    notes: "Cuko pedes ya mamah",
-    total: 38000,
-    time: "09:30",
-    method: "QRIS",
-    isPaid: true
-  }
-]
+// START FROM 0 (KOSONG BERSIH UNTUK TESTING)
+export const DEFAULT_STORES = []
+export const DEFAULT_MENUS = []
+export const DEFAULT_ORDERS = []
 
 const STORAGE_KEYS = {
-  STORES: 'nitip_nyaak_stores_multi_v1',
-  MENUS: 'nitip_nyaak_menus_multi_v1',
-  ORDERS: 'nitip_nyaak_orders_multi_v1',
-  LOGGED_ADMIN_STORE: 'nitip_nyaak_logged_store_id'
+  STORES: 'nitip_nyaak_v3_clean_stores',
+  MENUS: 'nitip_nyaak_v3_clean_menus',
+  ORDERS: 'nitip_nyaak_v3_clean_orders',
+  LOGGED_ADMIN_STORE: 'nitip_nyaak_v3_logged_store_id'
 }
 
 // LOCAL STORAGE ACCESSORS
@@ -287,7 +88,7 @@ export async function apiGetStores() {
         .select('*')
         .order('created_at', { ascending: true })
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const mapped = data.map(s => ({
           id: s.id,
           slug: s.id,
@@ -366,10 +167,10 @@ export async function apiGetMenus() {
         .select('*')
         .order('id', { ascending: true })
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const mapped = data.map(m => ({
           id: m.id,
-          storeId: m.store_id || "mamah-dita",
+          storeId: m.store_id,
           name: m.name,
           desc: m.description,
           price: m.price,
@@ -439,7 +240,7 @@ export async function apiGetOrders() {
       if (!error && data) {
         const mapped = data.map(o => ({
           id: o.id,
-          storeId: o.store_id || "mamah-dita",
+          storeId: o.store_id,
           name: o.buyer_name,
           notes: o.buyer_notes,
           items: o.items,

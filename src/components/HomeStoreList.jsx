@@ -8,7 +8,12 @@ import {
   Search, 
   PlusCircle, 
   Lock,
-  Sparkles
+  Sparkles,
+  HelpCircle,
+  Share2,
+  QrCode,
+  ChefHat,
+  CheckCircle2
 } from 'lucide-react'
 
 export default function HomeStoreList({ 
@@ -19,186 +24,220 @@ export default function HomeStoreList({
   onOpenAdminLogin 
 }) {
   const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('Semua')
+  const [showGuide, setShowGuide] = useState(true)
 
-  const categories = ['Semua', 'Masakan Rumahan', 'Khas Palembang', 'Camilan']
-
-  const filteredStores = stores.filter(store => {
-    const matchesSearch = store.name.toLowerCase().includes(search.toLowerCase()) ||
-                          store.category.toLowerCase().includes(search.toLowerCase()) ||
-                          store.ownerName.toLowerCase().includes(search.toLowerCase())
-    const matchesCat = selectedCategory === 'Semua' || store.category.includes(selectedCategory)
-    return matchesSearch && matchesCat
-  })
+  const filteredStores = stores.filter(store => 
+    store.name.toLowerCase().includes(search.toLowerCase()) ||
+    store.ownerName.toLowerCase().includes(search.toLowerCase()) ||
+    store.category.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto pb-16">
+    <div className="space-y-6">
       
-      {/* Hero Welcome Banner */}
-      <div className="px-5 pt-4 pb-6 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-b-[32px] shadow-lg shadow-indigo-100 relative overflow-hidden">
-        <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 select-none pointer-events-none">🍲</div>
-        
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 mb-2.5">
-          <Sparkles className="w-3 h-3 text-amber-300" />
-          <span>JASTIP MAKANAN KANTOR & KOMUNITAS</span>
-        </span>
-
-        <h2 className="text-xl font-extrabold tracking-tight">Mau Nitip Makan Apa? 😋</h2>
-        <p className="text-xs text-purple-100 mt-1 leading-relaxed">
-          Pilih lapak yang lagi buka PO di bawah, pesan sat-set & bayar QRIS!
-        </p>
-
-        {/* Search Bar Input */}
-        <div className="mt-4 relative">
-          <input 
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nasi bakar, pempek, dimsum..."
-            className="w-full bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-purple-200 text-xs rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:bg-white/30 focus:border-white transition-all"
-          />
-          <Search className="w-4 h-4 text-purple-200 absolute left-3 top-3" />
-        </div>
-      </div>
-
-      {/* Category Pills */}
-      <div className="px-5 pt-4 pb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all bouncy-tap ${
-              selectedCategory === cat 
-                ? 'bg-slate-900 text-white shadow-sm' 
-                : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Store List Directory */}
-      <div className="px-4 py-2 space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-extrabold text-xs text-slate-800 flex items-center gap-1.5">
-            <Store className="w-4 h-4 text-brand-600" />
-            <span>Lapak Jastip yang Lagi Buka:</span>
-          </h3>
-          <span className="text-[10px] font-bold text-slate-400">
-            {filteredStores.length} Lapak
+      {/* Hero Header Bersih & Luas */}
+      <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/60 relative overflow-hidden">
+        <div className="relative z-10 max-w-xl">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>PLATFORM JASTIP MAKANAN KANTOR & KOMUNITAS</span>
           </span>
-        </div>
 
-        {filteredStores.length === 0 ? (
-          <div className="text-center py-8 bg-white rounded-3xl border border-slate-200/80 p-5">
-            <span className="text-3xl block mb-2">🔍</span>
-            <p className="font-bold text-xs text-slate-700">Lapak tidak ditemukan</p>
-            <p className="text-[11px] text-slate-400 mt-1">Coba cari dengan kata kunci lain yaa</p>
-          </div>
-        ) : (
-          filteredStores.map(store => {
-            const storeMenus = menus.filter(m => m.storeId === store.id)
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
+            Nitip Makanan Anti-Ribet, Langsung Bayar QRIS 🍲
+          </h2>
+          <p className="text-sm text-purple-100 mt-2 leading-relaxed">
+            Gak perlu lagi ngetik list panjang di grup WhatsApp. Pesan lewat link, rekap otomatis, bayar sat-set!
+          </p>
 
-            return (
-              <div 
-                key={store.id}
-                onClick={() => onSelectStore(store)}
-                className="bg-white border border-slate-200/90 hover:border-brand-300 rounded-3xl p-4 transition-all shadow-sm hover:shadow-md cursor-pointer group bouncy-tap relative space-y-3"
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <button
+              onClick={onOpenRegisterStore}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs md:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-amber-400/20 flex items-center gap-2 bouncy-tap"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Buka Lapak Jastip Baru</span>
+            </button>
+
+            {stores.length > 0 && (
+              <button
+                onClick={onOpenAdminLogin}
+                className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs md:text-sm px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md bouncy-tap"
               >
-                {/* Store Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-3xl shrink-0 shadow-inner group-hover:scale-105 transition-transform">
-                      {store.icon || '🍲'}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="font-extrabold text-sm text-slate-900 truncate">
-                          {store.name}
-                        </h4>
-                        {store.badge && (
-                          <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full shrink-0">
-                            {store.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                        oleh <strong className="text-slate-700">{store.ownerName}</strong> • {store.category}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Open PO</span>
-                  </span>
-                </div>
-
-                {/* Info Bar PO Schedule */}
-                <div className="bg-slate-50 rounded-2xl p-2.5 grid grid-cols-2 gap-2 text-[10px] text-slate-600 border border-slate-100">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <Calendar className="w-3.5 h-3.5 text-brand-500 shrink-0" />
-                    <span className="truncate">Sampai: <strong>{store.deliveryDate} ({store.deliveryTime})</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 truncate">
-                    <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span className="truncate">Tutup PO: <strong>{store.cutoffTime}</strong></span>
-                  </div>
-                </div>
-
-                {/* Footer Card */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    {storeMenus.length} Menu Pilihan
-                  </span>
-                  <div className="flex items-center gap-1 text-brand-700 font-extrabold group-hover:translate-x-1 transition-transform text-xs">
-                    <span>Lihat Menu & Pesan</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-            )
-          })
-        )}
+                <Lock className="w-4 h-4 text-purple-200" />
+                <span>Masuk Lapak Saya</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Seller Onboarding Card in Bottom */}
-      <div className="px-4 pt-3">
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200/80 rounded-3xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-orange-200">
-              👩‍🍳
+      {/* PANDUAN AWAL (ONBOARDING GUIDE) */}
+      {showGuide && (
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold">
+                <HelpCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-900">
+                  Panduan Cara Pakai Nitip Nyaak!
+                </h3>
+                <p className="text-xs text-slate-400">Hanya 3 langkah gampang buat mulai</p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-extrabold text-xs text-orange-950">
-                Punya Masakan Enak? Buka Jastip Sendiri!
-              </h4>
-              <p className="text-[11px] text-orange-800/80 leading-tight mt-0.5">
-                Bikin lapak jastipmu gratis dalam 30 detik. Dapat link khusus lapak buat di-share ke WA!
+            <button 
+              onClick={() => setShowGuide(false)}
+              className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
+            >
+              Tutup ✕
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-violet-600 text-white flex items-center justify-center text-xs font-black">
+                1
+              </div>
+              <h4 className="font-extrabold text-xs text-slate-900">Penjual Buka Lapak</h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Klik tombol "Buka Lapak", atur menu makanan, pasang nomor QRIS/bank, dan tentukan jam tutup pesan.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-black">
+                2
+              </div>
+              <h4 className="font-extrabold text-xs text-slate-900">Sebar Link ke WhatsApp</h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Salin link lapakmu yang otomatis terbuat, lalu kirim ke grup WA kantor/kampus. Teman-teman tinggal klik linknya!
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
+              <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center text-xs font-black">
+                3
+              </div>
+              <h4 className="font-extrabold text-xs text-slate-900">Rekap Masak Otomatis</h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Pembeli bayar via QRIS. Dashboard penjual langsung merekap total porsi yang harus dimasak & status bayar.
               </p>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
+      {/* KONDISI EMPTY STATE (MULAI DARI 0) */}
+      {stores.length === 0 ? (
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-8 md:p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center text-3xl mx-auto shadow-inner">
+            🍲
+          </div>
+          <div className="max-w-md mx-auto">
+            <h3 className="font-extrabold text-base md:text-lg text-slate-900">
+              Belum Ada Lapak Jastip yang Buka
+            </h3>
+            <p className="text-xs md:text-sm text-slate-500 mt-1 leading-relaxed">
+              Mulai tes aplikasi dari 0 sekarang! Bikin lapak jastip pertamamu (misal: jastip masakan Mamah, jajan pasar, atau kopi) dalam 30 detik.
+            </p>
+          </div>
+
+          <div className="pt-2">
             <button
               onClick={onOpenRegisterStore}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs py-2.5 px-3 rounded-2xl shadow-md shadow-orange-200 flex items-center justify-center gap-1.5 bouncy-tap"
+              className="bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs md:text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-brand-200 inline-flex items-center gap-2 bouncy-tap"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Buka Lapak Baru</span>
-            </button>
-
-            <button
-              onClick={onOpenAdminLogin}
-              className="bg-white hover:bg-orange-50 text-slate-700 border border-orange-200 font-bold text-xs py-2.5 px-3 rounded-2xl flex items-center justify-center gap-1.5 bouncy-tap"
-            >
-              <Lock className="w-3.5 h-3.5 text-slate-400" />
-              <span>Kelola Lapak Saya</span>
+              <span>Buat Lapak Jastip Pertamamu Sekarang</span>
             </button>
           </div>
         </div>
-      </div>
+      ) : (
+        /* KONDISI JIKA SUDAH ADA LAPAK */
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Store className="w-5 h-5 text-brand-600" />
+                <span>Daftar Lapak Jastip yang Lagi Buka ({filteredStores.length})</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Pilih salah satu lapak untuk jajan</p>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari lapak jastip..."
+                className="w-full bg-white border border-slate-200 text-xs rounded-2xl pl-9 pr-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-sm"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredStores.map(store => {
+              const storeMenus = menus.filter(m => m.storeId === store.id)
+
+              return (
+                <div 
+                  key={store.id}
+                  onClick={() => onSelectStore(store)}
+                  className="bg-white border border-slate-200/90 hover:border-brand-400 rounded-3xl p-5 transition-all shadow-sm hover:shadow-md cursor-pointer group bouncy-tap flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center text-2xl shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                          {store.icon || '🍲'}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-extrabold text-sm text-slate-900 truncate">
+                            {store.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 font-medium">
+                            oleh <strong className="text-slate-700">{store.ownerName}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Buka PO</span>
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-2xl p-2.5 grid grid-cols-2 gap-2 text-[11px] text-slate-600 border border-slate-100">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Calendar className="w-3.5 h-3.5 text-brand-500 shrink-0" />
+                        <span className="truncate">Sampai: <strong>{store.deliveryDate}</strong></span>
+                      </div>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="truncate">Tutup: <strong>{store.cutoffTime}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {storeMenus.length} Menu Tersedia
+                    </span>
+                    <div className="flex items-center gap-1 text-brand-700 font-extrabold group-hover:translate-x-1 transition-transform text-xs">
+                      <span>Buka Menu</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
     </div>
   )
