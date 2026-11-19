@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import HomeStoreList from './components/HomeStoreList'
 import BuyerPage from './components/BuyerPage'
 import AdminPage from './components/AdminPage'
@@ -33,6 +33,11 @@ export default function App() {
   const [viewMode, setViewMode] = useState('directory')
   const [activeStore, setActiveStore] = useState(null)
   const [adminStore, setAdminStore] = useState(null)
+  const adminStoreRef = useRef(null)
+
+  useEffect(() => {
+    adminStoreRef.current = adminStore
+  }, [adminStore])
 
   // Modals & Cart
   const [cart, setCart] = useState({})
@@ -56,8 +61,9 @@ export default function App() {
       setOrders(oList)
 
       const savedAdminId = getLoggedAdminStoreId()
-      const foundAdmin = sList.find(s => s.id === savedAdminId)
+      const foundAdmin = sList.find(s => s.id === savedAdminId) || null
       if (foundAdmin) {
+        adminStoreRef.current = foundAdmin
         setAdminStore(foundAdmin)
       }
 
@@ -68,7 +74,9 @@ export default function App() {
 
     const onHashChange = () => {
       apiGetStores().then(sList => {
-        handleRoute(sList, adminStore)
+        const savedAdminId = getLoggedAdminStoreId()
+        const current = adminStoreRef.current || (savedAdminId ? sList.find(s => s.id === savedAdminId) : null)
+        handleRoute(sList, current)
       })
     }
     window.addEventListener('hashchange', onHashChange)
@@ -88,15 +96,20 @@ export default function App() {
       if (targetStore) {
         setActiveStore(targetStore)
         setViewMode('buyer')
+        setIsAdminLoginOpen(false)
         return
       }
     }
 
     // 2. Admin Link
     if (hash.includes('admin') || path.includes('admin')) {
-      if (currentAdmin) {
-        setAdminStore(currentAdmin)
+      const savedAdminId = getLoggedAdminStoreId()
+      const adminObj = currentAdmin || adminStoreRef.current || (savedAdminId ? storeList.find(s => s.id === savedAdminId) : null)
+      if (adminObj) {
+        adminStoreRef.current = adminObj
+        setAdminStore(adminObj)
         setViewMode('admin')
+        setIsAdminLoginOpen(false)
       } else {
         setIsAdminLoginOpen(true)
       }
@@ -206,15 +219,19 @@ export default function App() {
   }
 
   const handleAdminLoginSuccess = (store) => {
+    adminStoreRef.current = store
     setAdminStore(store)
     setLoggedAdminStoreId(store.id)
+    setIsAdminLoginOpen(false)
     setViewMode('admin')
     window.location.hash = '#/admin'
   }
 
   const handleLogoutAdmin = () => {
+    adminStoreRef.current = null
     setAdminStore(null)
     setLoggedAdminStoreId(null)
+    setIsAdminLoginOpen(false)
     setViewMode('directory')
     window.location.hash = ''
   }

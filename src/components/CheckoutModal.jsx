@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check } from 'lucide-react'
+import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
 export default function CheckoutModal({ 
@@ -171,20 +171,46 @@ export default function CheckoutModal({
 
           {/* QRIS Display Box */}
           {payMethod === 'qris' && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-2.5">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-slate-500">Scan QRIS: <strong className="text-slate-800">{store.paymentName || store.ownerName}</strong></span>
-                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">All E-Wallet</span>
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">All E-Wallet & M-Banking</span>
               </div>
               
-              <div className="w-36 h-36 mx-auto bg-white p-2 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center shadow-inner">
-                <div className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 text-white text-center">
-                  <QrCode className="w-10 h-10 mb-1 text-emerald-400" />
-                  <span className="text-[9px] font-black uppercase tracking-wider">QRIS STANDAR</span>
-                  <span className="text-[8px] opacity-75 font-mono">{store.qrisNmid}</span>
+              {store.qrisImage ? (
+                <div className="space-y-2">
+                  <div className="w-48 h-48 mx-auto bg-white p-2.5 rounded-2xl border-2 border-emerald-400 shadow-md flex items-center justify-center overflow-hidden">
+                    <img 
+                      src={store.qrisImage} 
+                      alt={`QRIS ${store.name}`} 
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-2 pt-0.5">
+                    <a 
+                      href={store.qrisImage} 
+                      download={`qris-${store.slug || 'lapak'}.jpg`}
+                      className="text-[11px] bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 bouncy-tap"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Simpan Foto QRIS</span>
+                    </a>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    Buka di HP? Simpan foto di atas, lalu buka BCA / GoPay / ShopeePay & bayar dari galeri foto.
+                  </p>
                 </div>
-              </div>
-              <div className="text-[11px] text-slate-500">
+              ) : (
+                <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-center space-y-1.5">
+                  <QrCode className="w-8 h-8 text-amber-600 mx-auto" />
+                  <p className="text-xs font-bold text-amber-900">Penjual Belum Mengunggah QRIS</p>
+                  <p className="text-[11px] text-amber-700 leading-snug">
+                    Silakan pilih metode <strong>Transfer Bank</strong> di atas, atau minta QRIS langsung ke penjual via WhatsApp yaa!
+                  </p>
+                </div>
+              )}
+
+              <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
                 Total pas: <strong className="text-slate-900 text-xs font-black">Rp {total.toLocaleString('id-ID')}</strong>
               </div>
             </div>

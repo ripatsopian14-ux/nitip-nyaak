@@ -15,8 +15,11 @@ import {
   LogOut,
   Calendar,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  Download
 } from 'lucide-react'
+import { compressImage } from '../utils/imageHelper'
 
 export default function AdminPage({ 
   store, 
@@ -33,6 +36,37 @@ export default function AdminPage({
   const [orderFilter, setOrderFilter] = useState('all') // 'all' | 'unpaid' | 'paid'
   const [copiedBroadcast, setCopiedBroadcast] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [uploadingQris, setUploadingQris] = useState(false)
+
+  const handleQrisUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setUploadingQris(true)
+      const compressedDataUrl = await compressImage(file, 600, 600, 0.85)
+      onUpdateStore({
+        ...store,
+        qrisImage: compressedDataUrl,
+        qrisNmid: compressedDataUrl
+      })
+      alert("✅ Foto QRIS berhasil diunggah! Sekarang pembeli bisa langsung scan QRIS saat checkout.")
+    } catch (err) {
+      alert("Gagal mengunggah foto: " + (err.message || 'Format tidak didukung'))
+    } finally {
+      setUploadingQris(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleRemoveQris = () => {
+    if (confirm("Hapus foto QRIS dari lapak ini?")) {
+      onUpdateStore({
+        ...store,
+        qrisImage: null,
+        qrisNmid: ''
+      })
+    }
+  }
 
   // Filter menus & orders only for THIS store
   const storeMenus = menus.filter(m => m.storeId === store.id)
@@ -335,14 +369,88 @@ export default function AdminPage({
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-lg font-black text-slate-800 shadow-sm">
-                    QR
+                {/* QRIS Upload Box */}
+                <div className="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      <QrCode className="w-4 h-4 text-emerald-600" />
+                      Foto Barcode QRIS Lapak
+                    </span>
+                    {store.qrisImage ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        QRIS Aktif ✅
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Belum Ada QRIS
+                      </span>
+                    )}
                   </div>
-                  <div className="text-[11px]">
-                    <span className="font-bold text-slate-800 block">QRIS Standar Aktif</span>
-                    <span className="text-slate-400">Pembeli bisa scan via BCA, Mandiri, GoPay, OVO, ShopeePay</span>
-                  </div>
+
+                  {store.qrisImage ? (
+                    <div className="flex items-center gap-3.5 bg-white p-3 rounded-2xl border border-emerald-200">
+                      <div className="w-20 h-20 bg-white rounded-xl border-2 border-emerald-400 p-1 shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                        <img 
+                          src={store.qrisImage} 
+                          alt="QRIS Preview" 
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </div>
+                      <div className="space-y-1.5 flex-1 text-left">
+                        <p className="text-[11px] text-slate-600 leading-snug">
+                          QRIS ini akan langsung ditampilkan saat pembeli memilih pembayaran QRIS di checkout.
+                        </p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <label 
+                            htmlFor="qris-file-input"
+                            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer inline-flex items-center gap-1 bouncy-tap"
+                          >
+                            <Upload className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Ganti Foto</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleRemoveQris}
+                            className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-1.5 rounded-xl inline-flex items-center gap-1 bouncy-tap"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-4 rounded-2xl border-2 border-dashed border-emerald-300 text-center space-y-2">
+                      <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">
+                          {uploadingQris ? 'Sedang memproses gambar...' : 'Unggah Barcode QRIS Lapak'}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          Screenshot QRIS dari GoPay, BCA, Mandiri, OVO, atau ShopeePay
+                        </p>
+                      </div>
+                      <div>
+                        <label 
+                          htmlFor="qris-file-input"
+                          className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md shadow-emerald-200 cursor-pointer bouncy-tap"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>Pilih Foto QRIS</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <input 
+                    type="file" 
+                    id="qris-file-input" 
+                    accept="image/*" 
+                    onChange={handleQrisUpload} 
+                    className="hidden" 
+                  />
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { X, Store, Sparkles, CheckCircle2 } from 'lucide-react'
+import { X, Store, Sparkles, CheckCircle2, QrCode, Upload } from 'lucide-react'
 import confetti from 'canvas-confetti'
+import { compressImage } from '../utils/imageHelper'
 
 export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess }) {
   const [name, setName] = useState('')
@@ -12,8 +13,25 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
   const [bankNumber, setBankNumber] = useState('')
   const [adminPin, setAdminPin] = useState('')
   const [icon, setIcon] = useState('🍲')
+  const [qrisImage, setQrisImage] = useState(null)
+  const [uploadingQris, setUploadingQris] = useState(false)
 
   if (!isOpen) return null
+
+  const handleQrisUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setUploadingQris(true)
+      const dataUrl = await compressImage(file, 600, 600, 0.85)
+      setQrisImage(dataUrl)
+    } catch (err) {
+      alert("Gagal membaca gambar QRIS: " + (err.message || 'File tidak didukung'))
+    } finally {
+      setUploadingQris(false)
+      e.target.value = ''
+    }
+  }
 
   // Auto-slug generator from store name
   const handleNameChange = (val) => {
@@ -54,7 +72,8 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
       paymentName: ownerName.trim(),
       bankName: bankName.trim(),
       bankNumber: bankNumber.trim() || "123456789",
-      qrisNmid: "ID" + Math.floor(10000000000 + Math.random() * 90000000000),
+      qrisImage: qrisImage || null,
+      qrisNmid: qrisImage || ("ID" + Math.floor(10000000000 + Math.random() * 90000000000)),
       adminPin: adminPin.trim(),
       icon: icon || '🍲',
       badge: "Lapak Baru ✨",
@@ -173,6 +192,43 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
               />
             </div>
+          </div>
+
+          {/* Optional QRIS Upload */}
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-slate-700 font-bold text-xs flex items-center gap-1.5">
+                <QrCode className="w-4 h-4 text-emerald-600" />
+                <span>Foto Barcode QRIS (Opsional)</span>
+              </label>
+              {qrisImage && (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Foto Terpilih ✅
+                </span>
+              )}
+            </div>
+            
+            {qrisImage ? (
+              <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-emerald-200">
+                <img src={qrisImage} alt="QRIS" className="w-12 h-12 object-contain rounded-lg border border-slate-200" />
+                <div className="flex-1 text-[11px] text-slate-500">
+                  <span>Foto QRIS siap dipasang di kasir.</span>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setQrisImage(null)}
+                  className="text-[11px] font-bold text-rose-600 hover:text-rose-700 p-1"
+                >
+                  Batal
+                </button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 py-2 px-3 bg-white hover:bg-slate-50 border border-dashed border-slate-300 rounded-xl cursor-pointer text-xs font-semibold text-slate-600">
+                <Upload className="w-3.5 h-3.5 text-slate-400" />
+                <span>{uploadingQris ? 'Memproses...' : '+ Unggah Foto QRIS (Bisa juga nanti)'}</span>
+                <input type="file" accept="image/*" onChange={handleQrisUpload} className="hidden" />
+              </label>
+            )}
           </div>
 
           <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/80 space-y-1">

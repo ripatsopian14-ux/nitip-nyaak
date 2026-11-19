@@ -26,8 +26,16 @@ export default function AdminLoginModal({ isOpen, onClose, stores, onLoginSucces
     setError(false)
   }
 
+  const handleClose = () => {
+    setPin('')
+    setError(false)
+    onClose()
+  }
+
   const verifyPin = (entered) => {
     if (currentStore && entered === (currentStore.adminPin || "1234")) {
+      setPin('')
+      setError(false)
       onLoginSuccess(currentStore)
       onClose()
     } else {
@@ -115,7 +123,7 @@ export default function AdminLoginModal({ isOpen, onClose, stores, onLoginSucces
           ))}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-400 font-bold text-xs transition-all bouncy-tap flex items-center justify-center"
           >
             Batal
