@@ -7,7 +7,8 @@ import AddMenuModal from './components/AddMenuModal'
 import AdminLoginModal from './components/AdminLoginModal'
 import RegisterStoreModal from './components/RegisterStoreModal'
 import CloudConfigModal from './components/CloudConfigModal'
-import { PlusCircle, Lock, Cloud, CloudOff } from 'lucide-react'
+import FeedbackModal from './components/FeedbackModal'
+import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare } from 'lucide-react'
 import { 
   apiGetStores,
   apiSaveStore,
@@ -46,6 +47,7 @@ export default function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
   const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
 
   // Load Data on Mount
   useEffect(() => {
@@ -393,9 +395,30 @@ export default function App() {
 
       </main>
 
+      {/* FLOATING FEEDBACK / BUG REPORT BUTTON */}
+      <button 
+        onClick={() => setIsFeedbackOpen(true)}
+        className="fixed bottom-5 right-5 z-40 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 hover:text-slate-900 font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg border border-slate-200/90 flex items-center gap-2 bouncy-tap hover:scale-105 transition-all group"
+        title="Beri Masukan / Lapor Bug"
+      >
+        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <MessageSquare className="w-3.5 h-3.5 text-amber-500 group-hover:rotate-12 transition-transform" />
+        <span className="hidden sm:inline">Masukan & Bug</span>
+        <span className="sm:hidden">Feedback</span>
+      </button>
+
       {/* FOOTER */}
-      <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400 space-y-1">
         <p>🍲 <strong>Nitip Nyaak!</strong> — Solusi titip makan siang kantor & komunitas tanpa pusing rekap.</p>
+        <p>
+          Ada kendala atau ide seru?{' '}
+          <button 
+            onClick={() => setIsFeedbackOpen(true)}
+            className="text-brand-600 hover:text-brand-700 font-bold underline"
+          >
+            Lapor Bug / Usul Fitur
+          </button>
+        </p>
       </footer>
 
       {/* MODALS */}
@@ -432,6 +455,11 @@ export default function App() {
       <CloudConfigModal
         isOpen={isConfigModalOpen}
         onClose={() => setIsConfigModalOpen(false)}
+      />
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
       />
 
     </div>
