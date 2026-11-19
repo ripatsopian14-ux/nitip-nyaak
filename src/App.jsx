@@ -420,6 +420,7 @@ export default function App() {
         onClose={() => setIsAdminLoginOpen(false)}
         stores={stores}
         onLoginSuccess={handleAdminLoginSuccess}
+        onUpdateStore={handleUpdateStore}
       />
 
       <RegisterStoreModal 
