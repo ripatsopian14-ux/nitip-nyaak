@@ -42,7 +42,7 @@ export default function BuyerPage({
       </div>
 
       {/* Store Banner Luas & Bernapas (Bukan Frame HP) */}
-      <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/60 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-orange-100/60 relative overflow-hidden">
         <div className="relative z-10 space-y-4">
           
           <div className="flex items-start justify-between gap-3">
@@ -51,13 +51,13 @@ export default function BuyerPage({
                 {store.icon || '🍲'}
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-purple-200 font-semibold block">
+                <span className="text-xs text-orange-100 font-semibold block">
                   {store.category}
                 </span>
                 <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
                   {store.name}
                 </h2>
-                <p className="text-xs md:text-sm text-purple-100 mt-0.5">
+                <p className="text-xs md:text-sm text-white/90 mt-0.5">
                   oleh <strong className="text-white">{store.ownerName}</strong>
                 </p>
               </div>

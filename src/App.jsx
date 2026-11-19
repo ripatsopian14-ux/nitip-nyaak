@@ -251,7 +251,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FD] flex flex-col items-center justify-center p-4 font-sans">
+      <div className="min-h-screen bg-[#FAFAF7] flex flex-col items-center justify-center p-4 font-sans">
         <div className="w-14 h-14 rounded-3xl bg-brand-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-brand-200 animate-bounce">
           🍲
         </div>
@@ -261,7 +261,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FD] text-slate-800 flex flex-col font-sans antialiased">
+    <div className="min-h-screen bg-[#FAFAF7] text-slate-800 flex flex-col font-sans antialiased">
       
       {/* NAVBAR MODERN & BERSIH */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5 sm:px-6 shadow-sm">

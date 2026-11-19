@@ -36,26 +36,26 @@ export default function HomeStoreList({
     <div className="space-y-6">
       
       {/* Hero Header Bersih & Luas */}
-      <div className="bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/60 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 text-white rounded-3xl p-6 md:p-8 shadow-xl shadow-orange-100/60 relative overflow-hidden">
         <div className="relative z-10 max-w-xl">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-200 bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
             <span>PLATFORM JASTIP MAKANAN KANTOR & KOMUNITAS</span>
           </span>
 
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
             Nitip Makanan Anti-Ribet, Langsung Bayar QRIS 🍲
           </h2>
-          <p className="text-sm text-purple-100 mt-2 leading-relaxed">
+          <p className="text-sm text-orange-50 mt-2 leading-relaxed">
             Gak perlu lagi ngetik list panjang di grup WhatsApp. Pesan lewat link, rekap otomatis, bayar sat-set!
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2.5">
             <button
               onClick={onOpenRegisterStore}
-              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs md:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-amber-400/20 flex items-center gap-2 bouncy-tap"
+              className="bg-white hover:bg-amber-50 text-orange-950 font-extrabold text-xs md:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-black/10 flex items-center gap-2 bouncy-tap"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4 h-4 text-orange-600" />
               <span>Buka Lapak Jastip Baru</span>
             </button>
 
@@ -64,7 +64,7 @@ export default function HomeStoreList({
                 onClick={onOpenAdminLogin}
                 className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs md:text-sm px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md bouncy-tap"
               >
-                <Lock className="w-4 h-4 text-purple-200" />
+                <Lock className="w-4 h-4 text-white/80" />
                 <span>Masuk Lapak Saya</span>
               </button>
             )}
@@ -77,7 +77,7 @@ export default function HomeStoreList({
         <div className="bg-white border border-slate-200/90 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
                 <HelpCircle className="w-4 h-4" />
               </div>
               <div>
@@ -97,7 +97,7 @@ export default function HomeStoreList({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
-              <div className="w-7 h-7 rounded-lg bg-violet-600 text-white flex items-center justify-center text-xs font-black">
+              <div className="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center text-xs font-black">
                 1
               </div>
               <h4 className="font-extrabold text-xs text-slate-900">Penjual Buka Lapak</h4>

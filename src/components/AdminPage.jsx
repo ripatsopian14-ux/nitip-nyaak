@@ -207,7 +207,7 @@ export default function AdminPage({
         <div className="space-y-5">
           
           {/* Card Direct Link Share */}
-          <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 p-5 md:p-6 rounded-3xl text-white shadow-xl shadow-indigo-100/60 space-y-3">
+          <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 p-5 md:p-6 rounded-3xl text-white shadow-xl shadow-orange-100/60 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full inline-block mb-1">
@@ -219,17 +219,17 @@ export default function AdminPage({
               </div>
               <button 
                 onClick={handleCopyLinkOnly}
-                className="self-start sm:self-auto text-xs bg-white text-violet-900 font-extrabold px-4 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap shadow-md"
+                className="self-start sm:self-auto text-xs bg-white text-orange-950 font-extrabold px-4 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap shadow-md"
               >
                 {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedLink ? 'Tersalin!' : 'Salin Link Lapak'}</span>
               </button>
             </div>
             
-            <p className="text-xs font-mono text-purple-100 truncate bg-black/20 p-3 rounded-2xl border border-white/10">
+            <p className="text-xs font-mono text-orange-50 truncate bg-black/20 p-3 rounded-2xl border border-white/10">
               {storeDirectUrl}
             </p>
-            <p className="text-xs text-purple-200">
+            <p className="text-xs text-white/80">
               * Ketika teman mengklik link ini, mereka langsung masuk ke lapakmu tanpa harus mencari-cari lagi!
             </p>
           </div>
