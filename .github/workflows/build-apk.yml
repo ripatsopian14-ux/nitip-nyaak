@@ -41,6 +41,7 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" >/dev/null 2>&1 || true
 
       - name: Make Gradle Wrapper Executable
         run: chmod +x android/gradlew
@@ -54,7 +55,13 @@ jobs:
       - name: Compile Android APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace > build_error.txt 2>&1
+          ./gradlew assembleDebug --no-daemon --stacktrace > build_error.txt 2>&1 || {
+            echo "## ❌ Gradle Build Error Details" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 80 build_error.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
 
       - name: Report Error to Commit Comment
         if: failure()
