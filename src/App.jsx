@@ -334,15 +334,10 @@ export default function App() {
               <img src="/logo.jpg" alt="Logo Nitip Nyaak" className="w-full h-full object-cover" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-extrabold text-base md:text-lg text-slate-900 tracking-tight leading-none">
-                  Nitip Nyaak!
-                </h1>
-                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200/60 px-2 py-0.2 rounded-full">
-                  Komunitas
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5 hidden sm:block">
+              <h1 className="font-black text-base md:text-lg text-slate-900 tracking-tight leading-none">
+                Nitip Nyaak!
+              </h1>
+              <p className="text-[11px] text-slate-400 font-medium mt-1 hidden sm:block">
                 Jastip makanan kantor & kampus anti-ribet
               </p>
             </div>
