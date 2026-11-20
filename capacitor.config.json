@@ -3,7 +3,7 @@
   "appName": "Nitip Nyaak!",
   "webDir": "dist",
   "server": {
-    "url": "https://nitip-nyaak.vercel.app",
+    "url": "https://www.nitipnyaak.biz.id",
     "cleartext": true
   }
 }
