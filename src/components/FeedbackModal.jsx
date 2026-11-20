@@ -170,7 +170,7 @@ export default function FeedbackModal({ isOpen, onClose, targetEmail = "ripat.so
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Rifat / Anonim"
+                  placeholder="Contoh: Budi / Teman Kantor"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 font-medium"
                 />
               </div>

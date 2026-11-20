@@ -65,7 +65,7 @@ export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Contoh: Pempek Kulit Crispy" 
+              placeholder="Contoh: Nasi Kulit Crispy / Dimsum Mentai" 
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
               required
             />

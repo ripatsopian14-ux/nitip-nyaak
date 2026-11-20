@@ -41,16 +41,181 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-// START FROM 0 (KOSONG BERSIH UNTUK TESTING)
-export const DEFAULT_STORES = []
-export const DEFAULT_MENUS = []
+// 3 LAPAK RESMI DENGAN DATA RAPI & SIAP SLICING
+export const DEFAULT_STORES = [
+  {
+    id: "dapur-bu-siti",
+    slug: "dapur-bu-siti",
+    name: "Dapur Bu Siti - Nasi Kulit & Sambal Bawang",
+    ownerName: "Bu Siti",
+    category: "Masakan Rumahan 🍲",
+    deliveryDate: "Jumat, 21 Nov 2026",
+    deliveryTime: "11:30 WIB",
+    cutoffTime: "Hari ini, jam 21:00 WIB",
+    pickupLocation: "Pantry Lt. 3 (Dekat Kulkas)",
+    sellerPhone: "6281234567001",
+    paymentName: "Siti Rahmawati",
+    bankName: "BCA",
+    bankNumber: "8735019281",
+    adminPin: "1234",
+    icon: "🍗",
+    badge: "Paling Laris 🔥",
+    isOpen: true
+  },
+  {
+    id: "dimsum-bang-jago",
+    slug: "dimsum-bang-jago",
+    name: "Dimsum House & Siomay Bang Jago",
+    ownerName: "Bang Jago",
+    category: "Camilan & Snack 🥟",
+    deliveryDate: "Jumat, 21 Nov 2026",
+    deliveryTime: "12:00 WIB",
+    cutoffTime: "Hari ini, jam 22:00 WIB",
+    pickupLocation: "Meja Resepsionis Lobby Depan",
+    sellerPhone: "6281234567002",
+    paymentName: "Jago Pratama",
+    bankName: "Mandiri",
+    bankNumber: "1370019283741",
+    adminPin: "1234",
+    icon: "🥟",
+    badge: "Wajib Coba ✨",
+    isOpen: true
+  },
+  {
+    id: "fresh-corner",
+    slug: "fresh-corner",
+    name: "Fresh Corner - Salad Buah & Dessert Box",
+    ownerName: "Dita Melia",
+    category: "Minuman & Sehat 🥤",
+    deliveryDate: "Sabtu, 22 Nov 2026",
+    deliveryTime: "14:30 WIB",
+    cutoffTime: "Besok, jam 10:00 WIB",
+    pickupLocation: "Area Santai Rooftop Lt. 5",
+    sellerPhone: "6281234567003",
+    paymentName: "Dita Melia",
+    bankName: "BSI",
+    bankNumber: "7182938491",
+    adminPin: "1234",
+    icon: "🥗",
+    badge: "Menu Sehat 🌿",
+    isOpen: true
+  }
+]
+
+export const DEFAULT_MENUS = [
+  // 1. Menu Dapur Bu Siti
+  {
+    id: "m-siti-1",
+    storeId: "dapur-bu-siti",
+    name: "Nasi Kulit Sambal Bawang Komplit",
+    price: 25000,
+    desc: "Nasi hangat + kulit ayam crispy gurih + serundeng + telur ceplok + sambal bawang nampol",
+    icon: "🍗",
+    quota: 25
+  },
+  {
+    id: "m-siti-2",
+    storeId: "dapur-bu-siti",
+    name: "Nasi Ayam Geprek Cabe Ijo",
+    price: 28000,
+    desc: "Ayam crispy digeprek sambal ijo gurih pedas + lalapan timun segar",
+    icon: "🌶️",
+    quota: 20
+  },
+  {
+    id: "m-siti-3",
+    storeId: "dapur-bu-siti",
+    name: "Ekstra Kulit Ayam Crispy (Ala Carte)",
+    price: 12000,
+    desc: "Porsi camilan kulit renyah kriuk berbumbu rempah gurih",
+    icon: "🥓",
+    quota: 15
+  },
+  {
+    id: "m-siti-4",
+    storeId: "dapur-bu-siti",
+    name: "Es Teh Manis Melati Jumbo",
+    price: 5000,
+    desc: "Es teh manis wangi melati dingin segar penghilang dahaga",
+    icon: "🥤",
+    quota: 30
+  },
+
+  // 2. Menu Dimsum Bang Jago
+  {
+    id: "m-jago-1",
+    storeId: "dimsum-bang-jago",
+    name: "Dimsum Mentai Tobiko (Isi 4)",
+    price: 25000,
+    desc: "Dimsum ayam lembut dengan topping saus mentai bakar lumer plus taburan tobiko",
+    icon: "🔥",
+    quota: 25
+  },
+  {
+    id: "m-jago-2",
+    storeId: "dimsum-bang-jago",
+    name: "Dimsum Ayam Mozzarella (Isi 4)",
+    price: 22000,
+    desc: "Dimsum ayam daging padat dengan lelehan keju mozzarella gurih molor",
+    icon: "🧀",
+    quota: 20
+  },
+  {
+    id: "m-jago-3",
+    storeId: "dimsum-bang-jago",
+    name: "Siomay Bandung Ikan Tenggiri (Isi 5)",
+    price: 24000,
+    desc: "Siomay ikan tenggiri asli + bumbu kacang medok kental & perasan jeruk limau",
+    icon: "🥟",
+    quota: 20
+  },
+  {
+    id: "m-jago-4",
+    storeId: "dimsum-bang-jago",
+    name: "Dimsum Udang Kukus Spesial (Isi 4)",
+    price: 26000,
+    desc: "Dimsum premium isi cacahan udang segar garing renyah",
+    icon: "🍤",
+    quota: 15
+  },
+
+  // 3. Menu Fresh Corner
+  {
+    id: "m-fresh-1",
+    storeId: "fresh-corner",
+    name: "Salad Buah Creamy Keju Melimpah (500ml)",
+    price: 28000,
+    desc: "Melon, semangka, apel, anggur, nata de coco dengan saus creamy mayo manis & keju parut",
+    icon: "🥗",
+    quota: 20
+  },
+  {
+    id: "m-fresh-2",
+    storeId: "fresh-corner",
+    name: "Fudgy Brownies Bites with Choco Dip",
+    price: 32000,
+    desc: "Brownies potong cokelat pekat chewy dengan cocolan saus dark chocolate lumer",
+    icon: "🍫",
+    quota: 15
+  },
+  {
+    id: "m-fresh-3",
+    storeId: "fresh-corner",
+    name: "Smoothies Mango Jelly Fresh",
+    price: 18000,
+    desc: "Jus mangga harum manis kental dengan potongan jelly kenyal dingin",
+    icon: "🥭",
+    quota: 25
+  }
+]
+
 export const DEFAULT_ORDERS = []
 
 const STORAGE_KEYS = {
-  STORES: 'nitip_nyaak_v3_clean_stores',
-  MENUS: 'nitip_nyaak_v3_clean_menus',
-  ORDERS: 'nitip_nyaak_v3_clean_orders',
-  LOGGED_ADMIN_STORE: 'nitip_nyaak_v3_logged_store_id'
+  STORES: 'nitip_nyaak_v4_stores',
+  MENUS: 'nitip_nyaak_v4_menus',
+  ORDERS: 'nitip_nyaak_v4_orders',
+  LOGGED_ADMIN_STORE: 'nitip_nyaak_v4_logged_store_id'
 }
 
 // LOCAL STORAGE ACCESSORS

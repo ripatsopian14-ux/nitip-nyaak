@@ -522,7 +522,7 @@ export default function App() {
         </p>
       </footer>
 
-      {/* MOBILE BOTTOM NAVIGATION (ALUR SHOPEE/TOKPED) */}
+      {/* MOBILE BOTTOM NAVIGATION (MODERN APP DOCK) */}
       <BottomNav 
         viewMode={viewMode}
         onGoHome={handleBackToDirectory}

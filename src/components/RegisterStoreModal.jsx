@@ -125,7 +125,7 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
               type="text" 
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Contoh: Pempek Asli Mamah Latif"
+              placeholder="Contoh: Nasi Kulit Bu Siti / Dimsum Mantap"
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
               required
             />
@@ -143,7 +143,7 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
                 type="text" 
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                placeholder="Contoh: Mamah Latif"
+                placeholder="Contoh: Bu Siti / Bang Jago"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
                 required
               />

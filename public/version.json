@@ -1,14 +1,14 @@
 {
-  "version": "1.1.0",
-  "versionCode": 2,
-  "releaseDate": "2026-11-20",
-  "title": "Nitip Nyaak! v1.1.0 Rilis!",
+  "version": "1.2.0",
+  "versionCode": 3,
+  "releaseDate": "2026-11-21",
+  "title": "Nitip Nyaak! Makin Sat-Set & Asik! 🍲✨",
   "changelog": [
-    "Menu navigasi bawah ala Shopee & Tokopedia (mudah dijangkau jempol)",
-    "Status bar Android putih bersih menyatu dengan aplikasi",
-    "Tombol Buka Lapak melayang presisi di tengah layar",
-    "Suara bel pesanan baru untuk penjual saat order masuk",
-    "Tampilan footer lebih rapi tanpa terpotong menu bawah"
+    "Bikin dan kelola lapak makin gampang tanpa ribet",
+    "Nomor WhatsApp otomatis rapi tanpa takut salah format",
+    "Simpan jadwal & info lapak sekali klik langsung beres",
+    "Tampilan makin segar, bersih, dan enteng dibuka di HP",
+    "Belanja bareng teman kantor makin lancar jaya"
   ],
   "downloadUrl": "/download"
 }
