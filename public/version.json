@@ -1,0 +1,14 @@
+{
+  "version": "1.1.0",
+  "versionCode": 2,
+  "releaseDate": "2026-11-20",
+  "title": "Nitip Nyaak! v1.1.0 Rilis!",
+  "changelog": [
+    "Menu navigasi bawah ala Shopee & Tokopedia (mudah dijangkau jempol)",
+    "Status bar Android putih bersih menyatu dengan aplikasi",
+    "Tombol Buka Lapak melayang presisi di tengah layar",
+    "Suara bel pesanan baru untuk penjual saat order masuk",
+    "Tampilan footer lebih rapi tanpa terpotong menu bawah"
+  ],
+  "downloadUrl": "https://github.com/ripatsopian14-ux/nitip-nyaak/actions"
+}

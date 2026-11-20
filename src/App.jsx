@@ -9,6 +9,7 @@ import RegisterStoreModal from './components/RegisterStoreModal'
 import CloudConfigModal from './components/CloudConfigModal'
 import FeedbackModal from './components/FeedbackModal'
 import BottomNav from './components/BottomNav'
+import UpdateModal from './components/UpdateModal'
 import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare } from 'lucide-react'
 import { 
   apiGetStores,
@@ -49,6 +50,32 @@ export default function App() {
   const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState(null)
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+
+  // In-App Update Checker
+  useEffect(() => {
+    fetch('/version.json?t=' + Date.now())
+      .then(res => res.json())
+      .then(data => {
+        const CURRENT_APP_VERSION = '1.0.0'
+        if (data.version && data.version !== CURRENT_APP_VERSION) {
+          const dismissed = localStorage.getItem('nitip_dismissed_version')
+          if (dismissed !== data.version) {
+            setUpdateInfo(data)
+            setIsUpdateModalOpen(true)
+          }
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleDismissUpdate = () => {
+    if (updateInfo?.version) {
+      localStorage.setItem('nitip_dismissed_version', updateInfo.version)
+    }
+    setIsUpdateModalOpen(false)
+  }
 
   // Load Data on Mount
   useEffect(() => {
@@ -447,6 +474,25 @@ export default function App() {
           >
             Lapor Bug / Usul Fitur
           </button>
+          {' • '}
+          <button 
+            onClick={() => {
+              if (updateInfo) {
+                setIsUpdateModalOpen(true)
+              } else {
+                fetch('/version.json?t=' + Date.now())
+                  .then(r => r.json())
+                  .then(d => {
+                    setUpdateInfo(d)
+                    setIsUpdateModalOpen(true)
+                  })
+                  .catch(() => alert("Aplikasi kamu sudah versi terbaru!"))
+              }
+            }}
+            className="text-slate-500 hover:text-brand-600 font-medium underline"
+          >
+            Cek Update APK
+          </button>
         </p>
       </footer>
 
@@ -500,6 +546,12 @@ export default function App() {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
         targetEmail="ripat.sopian17@gmail.com"
+      />
+
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={handleDismissUpdate}
+        updateInfo={updateInfo}
       />
 
     </div>

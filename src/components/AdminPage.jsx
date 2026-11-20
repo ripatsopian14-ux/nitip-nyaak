@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   Settings, 
   ChefHat, 
@@ -18,9 +18,11 @@ import {
   ExternalLink,
   Upload,
   Download,
-  X
+  X,
+  Bell
 } from 'lucide-react'
 import { compressImage } from '../utils/imageHelper'
+import { playOrderChime } from '../utils/soundHelper'
 
 export default function AdminPage({ 
   store, 
@@ -73,6 +75,32 @@ export default function AdminPage({
   // Filter menus & orders only for THIS store
   const storeMenus = menus.filter(m => m.storeId === store.id)
   const storeOrders = orders.filter(o => o.storeId === store.id)
+
+  // Realtime order sound notification & toast alert
+  const prevOrderCountRef = useRef(storeOrders.length)
+  const [newOrderAlert, setNewOrderAlert] = useState(null)
+
+  useEffect(() => {
+    if (storeOrders.length > prevOrderCountRef.current) {
+      playOrderChime()
+      const latestOrder = storeOrders[0] || storeOrders[storeOrders.length - 1]
+      setNewOrderAlert(latestOrder)
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`🍲 Pesanan Baru Masuk! - ${store.name}`, {
+            body: `${latestOrder?.name || 'Seseorang'} memesan ${latestOrder?.items?.length || 1} menu!`,
+            icon: '/logo.jpg'
+          })
+        } catch (_) {}
+      }
+
+      const timer = setTimeout(() => setNewOrderAlert(null), 6000)
+      prevOrderCountRef.current = storeOrders.length
+      return () => clearTimeout(timer)
+    }
+    prevOrderCountRef.current = storeOrders.length
+  }, [storeOrders.length, store.name])
 
   // Calculations for Rekap
   let totalRevenue = 0
@@ -134,6 +162,19 @@ export default function AdminPage({
   return (
     <div className="space-y-6 pb-20">
       
+      {/* REALTIME NEW ORDER TOAST BANNER */}
+      {newOrderAlert && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300 border border-emerald-400/40">
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-white animate-bounce" />
+          </div>
+          <div>
+            <p className="text-xs font-black tracking-wide uppercase text-emerald-200">Pesanan Baru Masuk! 🔔</p>
+            <p className="text-sm font-bold">{newOrderAlert.name} ({newOrderAlert.items?.length || 1} menu - Rp {newOrderAlert.total?.toLocaleString('id-ID')})</p>
+          </div>
+        </div>
+      )}
+
       {/* Top Admin Action Bar */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -157,11 +198,27 @@ export default function AdminPage({
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button 
+            onClick={() => {
+              playOrderChime()
+              if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission()
+              }
+              alert("🔔 Ting-Tong! Suara bel pesanan baru aktif.")
+            }}
+            className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-3 py-2.5 rounded-xl transition-all bouncy-tap"
+            title="Klik untuk tes suara bel & aktifkan notifikasi layar"
+          >
+            <Bell className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">Tes Suara Bel</span>
+            <span className="sm:hidden">Tes Bel</span>
+          </button>
+
+          <button 
             onClick={onExitToBuyer}
             className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-2.5 rounded-xl transition-all bouncy-tap"
           >
             <Eye className="w-3.5 h-3.5 text-brand-600" />
-            <span>Lihat Menu Pembeli</span>
+            <span>Lihat Menu</span>
           </button>
 
           <button 
