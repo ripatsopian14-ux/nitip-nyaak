@@ -1,18 +1,11 @@
 import React, { useState } from 'react'
 import { X, Lock, Store, AlertCircle, Phone, ArrowLeft, CheckCircle2, KeyRound, MessageCircle, RefreshCw } from 'lucide-react'
-
-// Helper: Normalize Indonesian phone numbers (08... vs 628...)
-function normalizePhone(p) {
-  if (!p) return ''
-  let clean = p.replace(/\D/g, '')
-  if (clean.startsWith('62')) clean = '0' + clean.slice(2)
-  return clean
-}
+import { buildWhatsAppUrl, toLocalPhone } from '../utils/phoneHelper'
 
 // Helper: Mask phone number for security clue (e.g. 0812••••7890)
 function maskPhone(p) {
   if (!p) return 'Nomor tidak terdaftar'
-  const clean = normalizePhone(p)
+  const clean = toLocalPhone(p)
   if (clean.length < 8) return clean
   return clean.slice(0, 4) + '••••' + clean.slice(-4)
 }
@@ -82,8 +75,8 @@ export default function AdminLoginModal({ isOpen, onClose, stores, onLoginSucces
     e.preventDefault()
     setPhoneError('')
 
-    const cleanInput = normalizePhone(phoneInput)
-    const cleanStorePhone = normalizePhone(currentStore?.sellerPhone)
+    const cleanInput = toLocalPhone(phoneInput)
+    const cleanStorePhone = toLocalPhone(currentStore?.sellerPhone)
 
     if (!cleanInput) {
       setPhoneError("Mohon masukkan nomor WhatsApp kamu.")
@@ -128,8 +121,10 @@ export default function AdminLoginModal({ isOpen, onClose, stores, onLoginSucces
   // Send PIN to WhatsApp
   const handleSendPinToWhatsApp = () => {
     const text = `Halo ${currentStore.ownerName}! 👋\n\nPengingat PIN untuk lapak *${currentStore.name}* adalah: *${currentStore.adminPin || '1234'}*\n\nJangan bagikan PIN ini ke orang yang tidak berkepentingan yaa! ✨`
-    const waUrl = `https://wa.me/${normalizePhone(currentStore.sellerPhone).replace(/^0/, '62')}?text=${encodeURIComponent(text)}`
-    window.open(waUrl, '_blank')
+    const waUrl = buildWhatsAppUrl(currentStore.sellerPhone, text)
+    if (waUrl && waUrl !== '#') {
+      window.open(waUrl, '_blank')
+    }
   }
 
   return (

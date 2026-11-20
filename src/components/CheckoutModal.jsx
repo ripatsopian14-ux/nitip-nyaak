@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, QrCode, Building2, CheckCircle2, Send, Copy, Check, Download, Upload, Clock, Trash2, AlertCircle } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { compressImage } from '../utils/imageHelper'
+import { buildWhatsAppUrl } from '../utils/phoneHelper'
 
 export default function CheckoutModal({ 
   isOpen, 
@@ -122,8 +123,10 @@ export default function CheckoutModal({
     }
     text += `Mohon dicatat yaa, terima kasih banyak! 🙏`
 
-    const waUrl = `https://wa.me/${store.sellerPhone}?text=${encodeURIComponent(text)}`
-    window.open(waUrl, '_blank')
+    const waUrl = buildWhatsAppUrl(store.sellerPhone, text)
+    if (waUrl && waUrl !== '#') {
+      window.open(waUrl, '_blank')
+    }
 
     onClose()
   }

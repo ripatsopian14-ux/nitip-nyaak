@@ -3,6 +3,7 @@ import { X, Store, Sparkles, CheckCircle2, QrCode, Upload, Calendar, Clock } fro
 import confetti from 'canvas-confetti'
 import { compressImage } from '../utils/imageHelper'
 import { toDateInputValue, formatDateIndo, getRelativeDateValue } from '../utils/timeHelper'
+import { toWhatsAppNumber } from '../utils/phoneHelper'
 
 export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess }) {
   const [name, setName] = useState('')
@@ -73,7 +74,7 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
       deliveryTime: `${deliveryTime} WIB`,
       cutoffTime: `Malam ini, jam ${cutoffTime} WIB`,
       pickupLocation: pickupLocation.trim() || "Pantry Lantai 3",
-      sellerPhone: sellerPhone.trim() || "6281234567890",
+      sellerPhone: toWhatsAppNumber(sellerPhone) || "6281234567890",
       paymentName: ownerName.trim(),
       bankName: bankName.trim(),
       bankNumber: bankNumber.trim() || "123456789",
@@ -165,15 +166,25 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
           </div>
 
           <div>
-            <label className="block text-slate-700 font-bold mb-1">No. WhatsApp Kamu</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-slate-700 font-bold text-xs">No. WhatsApp Kamu</label>
+              {sellerPhone && (
+                <span className="text-[10px] text-emerald-600 font-bold font-mono">
+                  WA: +{toWhatsAppNumber(sellerPhone)}
+                </span>
+              )}
+            </div>
             <input 
               type="text" 
               value={sellerPhone}
               onChange={(e) => setSellerPhone(e.target.value)}
-              placeholder="Contoh: 6281234567890"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
+              placeholder="Ketik 08xx atau 628xx..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-mono font-medium"
               required
             />
+            <p className="text-[10px] text-slate-400 mt-1">
+              * Bebas ketik 08xx atau 628xx (otomatis disesuaikan ke format WhatsApp).
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
