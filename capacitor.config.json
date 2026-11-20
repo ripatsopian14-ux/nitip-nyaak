@@ -3,6 +3,7 @@
   "appName": "Nitip Nyaak!",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https"
+    "url": "https://nitip-nyaak.vercel.app",
+    "cleartext": true
   }
 }
