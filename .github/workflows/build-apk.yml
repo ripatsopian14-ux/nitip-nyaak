@@ -5,6 +5,9 @@ on:
     branches: [ main, dev ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android APK
@@ -65,3 +68,19 @@ jobs:
           path: android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Prepare Direct APK
+        run: |
+          mkdir -p release-apk
+          cp android/app/build/outputs/apk/debug/*.apk release-apk/nitip-nyaak.apk
+
+      - name: Publish Direct APK to GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Nitip Nyaak! Direct APK (Latest)"
+          body: "Direct APK download link untuk Android. Otomatis diperbarui setiap ada rilis di branch main."
+          files: release-apk/nitip-nyaak.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

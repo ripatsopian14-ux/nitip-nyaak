@@ -68,6 +68,15 @@ export default function HomeStoreList({
                 <span>Masuk Lapak Saya</span>
               </button>
             )}
+
+            <a
+              href="/download"
+              className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs md:text-sm px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md bouncy-tap"
+              title="Download APK Langsung untuk Android"
+            >
+              <span>📲</span>
+              <span>Download APK</span>
+            </a>
           </div>
         </div>
 

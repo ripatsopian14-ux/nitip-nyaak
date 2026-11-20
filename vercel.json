@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/download",
+      "destination": "https://github.com/ripatsopian14-ux/nitip-nyaak/releases/latest/download/nitip-nyaak.apk",
+      "permanent": false
+    },
+    {
+      "source": "/nitip-nyaak.apk",
+      "destination": "https://github.com/ripatsopian14-ux/nitip-nyaak/releases/latest/download/nitip-nyaak.apk",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
