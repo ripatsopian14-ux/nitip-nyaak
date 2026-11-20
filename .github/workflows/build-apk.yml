@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions: write-all
+
 jobs:
   build:
     name: Build Android APK
@@ -52,8 +54,23 @@ jobs:
       - name: Compile Android APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
-          ls -la app/build/outputs/apk/debug/ || true
+          ./gradlew assembleDebug --no-daemon --stacktrace > build_error.txt 2>&1
+
+      - name: Report Error to Commit Comment
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let log = '';
+            try { log = fs.readFileSync('android/build_error.txt', 'utf8'); } catch (e) { log = e.message; }
+            const lines = log.split('\n').slice(-80).join('\n');
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: '### ❌ Gradle Build Error Details\n```text\n' + lines + '\n```'
+            });
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
