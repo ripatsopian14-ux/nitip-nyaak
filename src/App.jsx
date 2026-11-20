@@ -322,7 +322,7 @@ export default function App() {
     <div className="min-h-screen bg-[#FAFAF7] text-slate-800 flex flex-col font-sans antialiased">
       
       {/* NAVBAR MODERN & BERSIH */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5 sm:px-6 shadow-sm">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 sm:px-6 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           
           {/* Logo & Brand */}
