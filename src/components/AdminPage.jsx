@@ -24,6 +24,13 @@ import {
 import { compressImage } from '../utils/imageHelper'
 import { playOrderChime } from '../utils/soundHelper'
 import { getStoreStatus, getMenuAvailableQuota } from '../utils/storeHelper'
+import { 
+  extractDateInputValue, 
+  extractTimeValue, 
+  formatDateIndo, 
+  formatTimeIndo, 
+  getRelativeDateValue 
+} from '../utils/timeHelper'
 
 export default function AdminPage({ 
   store, 
@@ -377,46 +384,179 @@ export default function AdminPage({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Makanan Datang</label>
-                    <input 
-                      type="text" 
-                      value={store.deliveryDate} 
-                      onChange={(e) => onUpdateStore({ ...store, deliveryDate: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
-                    />
+                {/* 1. Pemilih Tanggal Makanan Datang (Date Picker & Kalender) */}
+                <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-700 font-bold text-xs flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-brand-600" />
+                      <span>Tanggal Makanan Datang</span>
+                    </label>
+                    <span className="text-[10px] text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-md">
+                      Pilih Kalender 📅
+                    </span>
                   </div>
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Jam Tiba</label>
-                    <input 
-                      type="text" 
-                      value={store.deliveryTime} 
-                      onChange={(e) => onUpdateStore({ ...store, deliveryTime: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
-                    />
+
+                  <input 
+                    type="date" 
+                    value={extractDateInputValue(store.deliveryDate)} 
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        onUpdateStore({ ...store, deliveryDate: formatDateIndo(e.target.value) })
+                      }
+                    }}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
+                  />
+
+                  {/* Keterangan & Preset Cepat */}
+                  <div className="flex items-center justify-between flex-wrap gap-1.5 pt-1 border-t border-slate-200/60 text-[11px]">
+                    <span className="font-extrabold text-slate-700 truncate max-w-[180px]">
+                      {store.deliveryDate}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(0)) })}
+                        className="text-[10px] bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
+                      >
+                        Hari Ini
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(1)) })}
+                        className="text-[10px] bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
+                      >
+                        Besok
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(2)) })}
+                        className="text-[10px] bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
+                      >
+                        Lusa
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Tutup PO (Cut-Off)</label>
+                {/* 2. Pemilih Jam Tiba & Jam Cut-Off (Time Picker) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Jam Tiba Makanan */}
+                  <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-slate-700 font-bold text-xs flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Jam Tiba</span>
+                      </label>
+                      <span className="text-[10px] text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">
+                        Time Picker ⏰
+                      </span>
+                    </div>
+
                     <input 
-                      type="text" 
-                      value={store.cutoffTime} 
-                      onChange={(e) => onUpdateStore({ ...store, cutoffTime: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
+                      type="time" 
+                      value={extractTimeValue(store.deliveryTime)} 
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          onUpdateStore({ ...store, deliveryTime: `${e.target.value} WIB` })
+                        }
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
                     />
+
+                    {/* Quick Time Preset */}
+                    <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                      {['11:30', '11:45', '12:00', '12:30'].map(t => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => onUpdateStore({ ...store, deliveryTime: `${t} WIB` })}
+                          className={`text-[10px] px-2 py-0.5 rounded-lg font-bold transition-all bouncy-tap ${
+                            store.deliveryTime?.includes(t)
+                              ? 'bg-amber-500 text-white shadow-xs'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Titik Ambil Makanan</label>
+
+                  {/* Jam Tutup PO (Cut-Off) */}
+                  <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-slate-700 font-bold text-xs flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Tutup PO (Cut-Off)</span>
+                      </label>
+                      <span className="text-[10px] text-rose-700 font-semibold bg-rose-50 px-1.5 py-0.5 rounded">
+                        Auto-Lock ⏳
+                      </span>
+                    </div>
+
                     <input 
-                      type="text" 
-                      value={store.pickupLocation} 
-                      onChange={(e) => onUpdateStore({ ...store, pickupLocation: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
+                      type="time" 
+                      value={extractTimeValue(store.cutoffTime)} 
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                          const prefix = isTomorrow ? 'Besok, jam ' : 'Hari ini, jam '
+                          onUpdateStore({ ...store, cutoffTime: `${prefix}${e.target.value} WIB` })
+                        }
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
                     />
+
+                    {/* Quick Preset & Toggle Day */}
+                    <div className="flex items-center justify-between flex-wrap gap-1 pt-0.5">
+                      <div className="flex items-center gap-1">
+                        {['18:00', '20:00', '21:00', '22:00'].map(t => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                              const prefix = isTomorrow ? 'Besok, jam ' : 'Hari ini, jam '
+                              onUpdateStore({ ...store, cutoffTime: `${prefix}${t} WIB` })
+                            }}
+                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-bold transition-all bouncy-tap ${
+                              store.cutoffTime?.includes(t)
+                                ? 'bg-rose-500 text-white shadow-xs'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const time = extractTimeValue(store.cutoffTime)
+                          const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                          const nextPrefix = isTomorrow ? 'Hari ini, jam ' : 'Besok, jam '
+                          onUpdateStore({ ...store, cutoffTime: `${nextPrefix}${time} WIB` })
+                        }}
+                        className="text-[10px] font-black text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 px-2 py-0.5 rounded-lg bouncy-tap"
+                        title="Klik untuk ganti antara Hari Ini atau Besok"
+                      >
+                        {store.cutoffTime?.toLowerCase().includes('besok') ? 'Besok' : 'Hari Ini'}
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                {/* 3. Titik Ambil Makanan */}
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">Titik Ambil Makanan</label>
+                  <input 
+                    type="text" 
+                    value={store.pickupLocation} 
+                    onChange={(e) => onUpdateStore({ ...store, pickupLocation: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
+                    placeholder="Contoh: Meja Resepsionis / Pantry Lt. 3"
+                  />
                 </div>
 
                 <div>

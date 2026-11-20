@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { X, Store, Sparkles, CheckCircle2, QrCode, Upload } from 'lucide-react'
+import { X, Store, Sparkles, CheckCircle2, QrCode, Upload, Calendar, Clock } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { compressImage } from '../utils/imageHelper'
+import { toDateInputValue, formatDateIndo, getRelativeDateValue } from '../utils/timeHelper'
 
 export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess }) {
   const [name, setName] = useState('')
@@ -15,6 +16,10 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
   const [icon, setIcon] = useState('🍲')
   const [qrisImage, setQrisImage] = useState(null)
   const [uploadingQris, setUploadingQris] = useState(false)
+  const [deliveryDate, setDeliveryDate] = useState(() => getRelativeDateValue(1))
+  const [deliveryTime, setDeliveryTime] = useState('11:45')
+  const [cutoffTime, setCutoffTime] = useState('21:00')
+  const [pickupLocation, setPickupLocation] = useState('Pantry Lantai 3')
 
   if (!isOpen) return null
 
@@ -64,10 +69,10 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
       name: name.trim(),
       ownerName: ownerName.trim(),
       category: category.trim(),
-      deliveryDate: "Besok Siang",
-      deliveryTime: "11:45 WIB",
-      cutoffTime: "Malam ini, jam 21:00",
-      pickupLocation: "Pantry Lantai 3",
+      deliveryDate: formatDateIndo(deliveryDate),
+      deliveryTime: `${deliveryTime} WIB`,
+      cutoffTime: `Malam ini, jam ${cutoffTime} WIB`,
+      pickupLocation: pickupLocation.trim() || "Pantry Lantai 3",
       sellerPhone: sellerPhone.trim() || "6281234567890",
       paymentName: ownerName.trim(),
       bankName: bankName.trim(),
@@ -229,6 +234,56 @@ export default function RegisterStoreModal({ isOpen, onClose, onRegisterSuccess 
                 <input type="file" accept="image/*" onChange={handleQrisUpload} className="hidden" />
               </label>
             )}
+          </div>
+
+          {/* Jadwal PO & Jam Tutup (Date & Time Picker) */}
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+            <span className="text-slate-700 font-bold text-xs flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-brand-600" />
+              <span>Jadwal Makanan & Jam Cut-Off</span>
+            </span>
+
+            <div>
+              <label className="block text-slate-500 text-[10px] font-semibold mb-0.5">Tanggal Makanan Datang</label>
+              <input 
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-xs cursor-pointer"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-slate-500 text-[10px] font-semibold mb-0.5">Jam Tiba ⏰</label>
+                <input 
+                  type="time"
+                  value={deliveryTime}
+                  onChange={(e) => setDeliveryTime(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-xs cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-500 text-[10px] font-semibold mb-0.5">Tutup PO (Cut-Off) ⏳</label>
+                <input 
+                  type="time"
+                  value={cutoffTime}
+                  onChange={(e) => setCutoffTime(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-xs cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-500 text-[10px] font-semibold mb-0.5">Titik Ambil Makanan</label>
+              <input 
+                type="text"
+                value={pickupLocation}
+                onChange={(e) => setPickupLocation(e.target.value)}
+                placeholder="Contoh: Pantry Lt. 3 / Meja Resepsionis"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs shadow-xs"
+              />
+            </div>
           </div>
 
           <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/80 space-y-1">
