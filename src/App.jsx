@@ -8,6 +8,7 @@ import AdminLoginModal from './components/AdminLoginModal'
 import RegisterStoreModal from './components/RegisterStoreModal'
 import CloudConfigModal from './components/CloudConfigModal'
 import FeedbackModal from './components/FeedbackModal'
+import BottomNav from './components/BottomNav'
 import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare } from 'lucide-react'
 import { 
   apiGetStores,
@@ -249,6 +250,34 @@ export default function App() {
     alert(`🎉 Lapak "${newStore.name}" berhasil dibuat! Link lapakmu: ${window.location.origin}/#/toko/${newStore.slug}`)
   }
 
+  const handleFocusSearch = () => {
+    if (viewMode !== 'directory') {
+      handleBackToDirectory()
+      setTimeout(() => {
+        const searchInput = document.querySelector('input[placeholder*="Cari"], input[type="text"]')
+        if (searchInput) {
+          searchInput.focus()
+          searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 350)
+    } else {
+      const searchInput = document.querySelector('input[placeholder*="Cari"], input[type="text"]')
+      if (searchInput) {
+        searchInput.focus()
+        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  }
+
+  const handleOpenBottomAdmin = () => {
+    if (adminStore) {
+      setViewMode('admin')
+      window.location.hash = '#/admin'
+    } else {
+      setIsAdminLoginOpen(true)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFAF7] flex flex-col items-center justify-center p-4 font-sans">
@@ -316,11 +345,10 @@ export default function App() {
               <>
                 <button
                   onClick={() => setIsRegisterStoreOpen(true)}
-                  className="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm shadow-brand-200 flex items-center gap-1.5 bouncy-tap"
+                  className="hidden sm:flex bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm shadow-brand-200 items-center gap-1.5 bouncy-tap"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Buka Lapak</span>
-                  <span className="sm:hidden">+ Lapak</span>
+                  <span>Buka Lapak</span>
                 </button>
 
                 {stores.length > 0 && (
@@ -362,7 +390,7 @@ export default function App() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-8 pb-28 md:pb-8">
         
         {viewMode === 'admin' && adminStore ? (
           <AdminPage 
@@ -397,17 +425,26 @@ export default function App() {
 
       </main>
 
-      {/* FLOATING FEEDBACK / BUG REPORT BUTTON */}
+      {/* FLOATING FEEDBACK / BUG REPORT BUTTON (DESKTOP ONLY, ON MOBILE IT'S IN THE BOTTOM NAV) */}
       <button 
         onClick={() => setIsFeedbackOpen(true)}
-        className="fixed bottom-5 right-5 z-40 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 hover:text-slate-900 font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg border border-slate-200/90 flex items-center gap-2 bouncy-tap hover:scale-105 transition-all group"
+        className="hidden md:flex fixed bottom-5 right-5 z-40 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 hover:text-slate-900 font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg border border-slate-200/90 items-center gap-2 bouncy-tap hover:scale-105 transition-all group"
         title="Beri Masukan / Lapor Bug"
       >
         <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
         <MessageSquare className="w-3.5 h-3.5 text-amber-500 group-hover:rotate-12 transition-transform" />
-        <span className="hidden sm:inline">Masukan & Bug</span>
-        <span className="sm:hidden">Feedback</span>
+        <span>Masukan & Bug</span>
       </button>
+
+      {/* MOBILE BOTTOM NAVIGATION (ALUR SHOPEE/TOKPED) */}
+      <BottomNav 
+        viewMode={viewMode}
+        onGoHome={handleBackToDirectory}
+        onFocusSearch={handleFocusSearch}
+        onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
+        onOpenAdmin={handleOpenBottomAdmin}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
 
       {/* FOOTER */}
       <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400 space-y-1">
