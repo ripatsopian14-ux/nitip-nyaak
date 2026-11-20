@@ -436,18 +436,8 @@ export default function App() {
         <span>Masukan & Bug</span>
       </button>
 
-      {/* MOBILE BOTTOM NAVIGATION (ALUR SHOPEE/TOKPED) */}
-      <BottomNav 
-        viewMode={viewMode}
-        onGoHome={handleBackToDirectory}
-        onFocusSearch={handleFocusSearch}
-        onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
-        onOpenAdmin={handleOpenBottomAdmin}
-        onOpenFeedback={() => setIsFeedbackOpen(true)}
-      />
-
       {/* FOOTER */}
-      <footer className="border-t border-slate-200/80 py-6 px-4 bg-white/50 text-center text-xs text-slate-400 space-y-1">
+      <footer className="border-t border-slate-200/80 pt-6 pb-28 md:pb-6 px-4 bg-white/50 text-center text-xs text-slate-400 space-y-1">
         <p>🍲 <strong>Nitip Nyaak!</strong> — Solusi titip makan siang kantor & komunitas tanpa pusing rekap.</p>
         <p>
           Ada kendala atau ide seru?{' '}
@@ -459,6 +449,16 @@ export default function App() {
           </button>
         </p>
       </footer>
+
+      {/* MOBILE BOTTOM NAVIGATION (ALUR SHOPEE/TOKPED) */}
+      <BottomNav 
+        viewMode={viewMode}
+        onGoHome={handleBackToDirectory}
+        onFocusSearch={handleFocusSearch}
+        onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
+        onOpenAdmin={handleOpenBottomAdmin}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
 
       {/* MODALS */}
       <CheckoutModal 
