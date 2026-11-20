@@ -50,10 +50,15 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
--- 4. PENTING: Matikan RLS agar anon key bisa baca & tulis data lapak tanpa diblokir
+-- 4. PENTING: Matikan RLS & berikan izin akses penuh ke anon agar aplikasi bisa baca & tulis
 ALTER TABLE stores DISABLE ROW LEVEL SECURITY;
 ALTER TABLE menu_items DISABLE ROW LEVEL SECURITY;
 ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE stores TO anon, authenticated, service_role;
+GRANT ALL ON TABLE menu_items TO anon, authenticated, service_role;
+GRANT ALL ON TABLE orders TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- 5. Enable Realtime agar saat teman pesan di HP, langsung masuk ke laptop secara instan
 ALTER PUBLICATION supabase_realtime ADD TABLE orders;
