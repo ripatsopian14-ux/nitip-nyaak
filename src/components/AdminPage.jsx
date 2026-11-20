@@ -735,6 +735,25 @@ export default function AdminPage({
                     className="w-20 text-center font-mono font-bold bg-slate-100 border border-slate-200 rounded-xl px-2 py-1.5 text-slate-800 focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
+
+                {/* Tombol Simpan Langsung di Card Jadwal & Info Lapak */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className={`text-[11px] font-bold flex items-center gap-1.5 ${
+                    isDirty ? 'text-amber-600' : 'text-emerald-600'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${isDirty ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                    {isDirty ? 'Ada editan belum disimpan' : 'Info & Jadwal tersimpan'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    disabled={isSaving}
+                    className="bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-brand-200 flex items-center gap-1.5 bouncy-tap"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isSaving ? 'Menyimpan...' : 'Simpan Info & Jadwal'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -864,6 +883,25 @@ export default function AdminPage({
                     onChange={handleQrisUpload} 
                     className="hidden" 
                   />
+                </div>
+
+                {/* Tombol Simpan Langsung di Card Rekening & QRIS */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className={`text-[11px] font-bold flex items-center gap-1.5 ${
+                    isDirty ? 'text-amber-600' : 'text-emerald-600'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${isDirty ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                    {isDirty ? 'Ada editan belum disimpan' : 'Rekening & QRIS tersimpan'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    disabled={isSaving}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-emerald-200 flex items-center gap-1.5 bouncy-tap"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isSaving ? 'Menyimpan...' : 'Simpan Rekening & QRIS'}</span>
+                  </button>
                 </div>
               </div>
             </div>
