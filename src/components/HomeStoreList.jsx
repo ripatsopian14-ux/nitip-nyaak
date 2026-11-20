@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { 
   Store, 
   Calendar, 
@@ -25,6 +26,7 @@ export default function HomeStoreList({
 }) {
   const [search, setSearch] = useState('')
   const [showGuide, setShowGuide] = useState(true)
+  const isNative = Capacitor.isNativePlatform()
 
   const filteredStores = stores.filter(store => 
     store.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -69,14 +71,16 @@ export default function HomeStoreList({
               </button>
             )}
 
-            <a
-              href="/download"
-              className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs md:text-sm px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md bouncy-tap"
-              title="Download APK Langsung untuk Android"
-            >
-              <span>📲</span>
-              <span>Download APK</span>
-            </a>
+            {!isNative && (
+              <a
+                href="/download"
+                className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs md:text-sm px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md bouncy-tap"
+                title="Download APK Langsung untuk Android"
+              >
+                <span>📲</span>
+                <span>Download APK</span>
+              </a>
+            )}
           </div>
         </div>
 
