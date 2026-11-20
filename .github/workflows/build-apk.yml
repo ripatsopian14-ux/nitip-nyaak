@@ -29,8 +29,8 @@ jobs:
       - name: Build Web App
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ylcxnvafhxjgyfquwnuz.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_CzFv_wCR7u9oRUNtxcP9Ag_ZgRSbCLr' }}
 
       - name: Setup Java JDK 21
         uses: actions/setup-java@v4
