@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { 
   Settings, 
   ChefHat, 
@@ -19,7 +19,11 @@ import {
   Upload,
   Download,
   X,
-  Bell
+  Bell,
+  Save,
+  RotateCcw,
+  AlertCircle,
+  Truck
 } from 'lucide-react'
 import { compressImage } from '../utils/imageHelper'
 import { playOrderChime } from '../utils/soundHelper'
@@ -47,8 +51,130 @@ export default function AdminPage({
   const [orderFilter, setOrderFilter] = useState('all') // 'all' | 'unpaid' | 'paid'
   const [copiedBroadcast, setCopiedBroadcast] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedKitchen, setCopiedKitchen] = useState(false)
+  const [copiedArrived, setCopiedArrived] = useState(false)
   const [uploadingQris, setUploadingQris] = useState(false)
   const [selectedProofOrder, setSelectedProofOrder] = useState(null)
+
+  // Local Form State for Store Settings (prevents saving on every keystroke)
+  const [formData, setFormData] = useState({
+    name: store.name || '',
+    deliveryDate: store.deliveryDate || '',
+    deliveryTime: store.deliveryTime || '',
+    cutoffTime: store.cutoffTime || '',
+    pickupLocation: store.pickupLocation || '',
+    sellerPhone: store.sellerPhone || '',
+    adminPin: store.adminPin || '1234',
+    paymentName: store.paymentName || store.ownerName || '',
+    bankName: store.bankName || 'BCA',
+    bankNumber: store.bankNumber || ''
+  })
+
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccessToast, setSaveSuccessToast] = useState(false)
+
+  // Sync formData when store.id changes
+  useEffect(() => {
+    setFormData({
+      name: store.name || '',
+      deliveryDate: store.deliveryDate || '',
+      deliveryTime: store.deliveryTime || '',
+      cutoffTime: store.cutoffTime || '',
+      pickupLocation: store.pickupLocation || '',
+      sellerPhone: store.sellerPhone || '',
+      adminPin: store.adminPin || '1234',
+      paymentName: store.paymentName || store.ownerName || '',
+      bankName: store.bankName || 'BCA',
+      bankNumber: store.bankNumber || ''
+    })
+  }, [store.id])
+
+  // Track if any setting was modified
+  const isDirty = useMemo(() => {
+    return (
+      (formData.name || '') !== (store.name || '') ||
+      (formData.deliveryDate || '') !== (store.deliveryDate || '') ||
+      (formData.deliveryTime || '') !== (store.deliveryTime || '') ||
+      (formData.cutoffTime || '') !== (store.cutoffTime || '') ||
+      (formData.pickupLocation || '') !== (store.pickupLocation || '') ||
+      (formData.sellerPhone || '') !== (store.sellerPhone || '') ||
+      (formData.adminPin || '1234') !== (store.adminPin || '1234') ||
+      (formData.paymentName || '') !== (store.paymentName || store.ownerName || '') ||
+      (formData.bankName || 'BCA') !== (store.bankName || 'BCA') ||
+      (formData.bankNumber || '') !== (store.bankNumber || '')
+    )
+  }, [formData, store])
+
+  const handleSaveSettings = async (e) => {
+    if (e) e.preventDefault()
+    if (!formData.name.trim()) {
+      alert("Nama lapak tidak boleh kosong!")
+      return
+    }
+    if (formData.adminPin && formData.adminPin.length !== 4) {
+      alert("PIN masuk lapak harus 4 digit angka!")
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      await onUpdateStore({
+        ...store,
+        ...formData
+      })
+      setSaveSuccessToast(true)
+      setTimeout(() => setSaveSuccessToast(false), 3000)
+    } catch (err) {
+      alert("Gagal menyimpan perubahan: " + (err.message || 'Terjadi kesalahan'))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleResetSettings = () => {
+    if (confirm("Batalkan semua editan yang belum disimpan?")) {
+      setFormData({
+        name: store.name || '',
+        deliveryDate: store.deliveryDate || '',
+        deliveryTime: store.deliveryTime || '',
+        cutoffTime: store.cutoffTime || '',
+        pickupLocation: store.pickupLocation || '',
+        sellerPhone: store.sellerPhone || '',
+        adminPin: store.adminPin || '1234',
+        paymentName: store.paymentName || store.ownerName || '',
+        bankName: store.bankName || 'BCA',
+        bankNumber: store.bankNumber || ''
+      })
+    }
+  }
+
+  const handleTogglePO = async () => {
+    const isCurrentlyOpen = store.isOpen !== false
+    if (isCurrentlyOpen) {
+      if (!confirm("Tutup PO sekarang? Pembeli tidak akan bisa menambah pesanan baru sampai kamu membukanya kembali.")) {
+        return
+      }
+    }
+    await onUpdateStore({ ...store, isOpen: !isCurrentlyOpen })
+  }
+
+  const handleProtectedExit = () => {
+    if (isDirty) {
+      if (!confirm("Masih ada perubahan yang belum disimpan. Yakin ingin keluar tanpa menyimpan?")) {
+        return
+      }
+    }
+    onExitToBuyer()
+  }
+
+  const handleProtectedLogout = () => {
+    if (isDirty) {
+      if (!confirm("Masih ada perubahan yang belum disimpan. Yakin ingin mengunci lapak?")) {
+        return
+      }
+    }
+    onLogout()
+  }
 
   const handleQrisUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -167,9 +293,34 @@ export default function AdminPage({
     alert(`Pesan pengingat tagihan untuk ${name} berhasil disalin! Tinggal paste di WA.`)
   }
 
+  // 1-Klik Salin List Belanjaan Dapur
+  const handleCopyKitchenList = () => {
+    const lines = Object.entries(portionMap).map(([name, qty]) => `• ${name}: *${qty} porsi*`).join('\n')
+    const text = `📋 *REKAPAN ORDER MASAK - ${store.name.toUpperCase()}*\n📅 *Jadwal Kedatangan:* ${store.deliveryDate} (${store.deliveryTime})\n\n${lines || '(Belum ada pesanan)'}\n\n*TOTAL SEMUA: ${totalPortions} PORSI*`
+    navigator.clipboard.writeText(text)
+    setCopiedKitchen(true)
+    setTimeout(() => setCopiedKitchen(false), 2500)
+  }
+
+  // 1-Klik Broadcast Makanan Sudah Sampai di Titik Ambil
+  const handleCopyArrivedBroadcast = () => {
+    const text = `📢 *MAKANAN SUDAH SAMPAI!* 🍲✨\n\nHalo temen-temen! Pesanan jastip *${store.name}* sudah tiba yaa di:\n📍 *Lokasi Ambil:* ${formData.pickupLocation || store.pickupLocation}\n\nMonggo langsung diambil selagi hangat biar gak dingin! Yang belum transfer/scan QRIS, ditunggu konfirmasinya yaa. Nuhun pisan semuanya! 🙏✨`
+    navigator.clipboard.writeText(text)
+    setCopiedArrived(true)
+    setTimeout(() => setCopiedArrived(false), 2500)
+  }
+
   return (
     <div className="space-y-6 pb-20">
       
+      {/* TOAST SUKSES SIMPAN PENGATURAN */}
+      {saveSuccessToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 animate-in slide-in-from-top duration-300 border border-emerald-400/40">
+          <CheckCircle2 className="w-5 h-5 text-white" />
+          <span className="text-xs font-black">Pengaturan lapak berhasil disimpan! 🎉</span>
+        </div>
+      )}
+
       {/* REALTIME NEW ORDER TOAST BANNER */}
       {newOrderAlert && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300 border border-emerald-400/40">
@@ -222,7 +373,7 @@ export default function AdminPage({
           </button>
 
           <button 
-            onClick={onExitToBuyer}
+            onClick={handleProtectedExit}
             className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-2.5 rounded-xl transition-all bouncy-tap"
           >
             <Eye className="w-3.5 h-3.5 text-brand-600" />
@@ -230,7 +381,7 @@ export default function AdminPage({
           </button>
 
           <button 
-            onClick={onLogout}
+            onClick={handleProtectedLogout}
             className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-3.5 py-2.5 rounded-xl transition-all bouncy-tap"
             title="Keluar / Kunci"
           >
@@ -307,10 +458,7 @@ export default function AdminPage({
 
               <button
                 type="button"
-                onClick={() => {
-                  const nextState = store.isOpen === false ? true : false
-                  onUpdateStore({ ...store, isOpen: nextState })
-                }}
+                onClick={handleTogglePO}
                 className={`px-4 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-sm bouncy-tap transition-all ${
                   store.isOpen !== false
                     ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'
@@ -368,8 +516,12 @@ export default function AdminPage({
                   <Calendar className="w-4 h-4 text-brand-600" />
                   <span>Jadwal PO & Lokasi Ambil</span>
                 </h4>
-                <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                  Langsung Aktif
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
+                  isDirty 
+                    ? 'text-amber-800 bg-amber-50 border-amber-200 animate-pulse' 
+                    : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                }`}>
+                  {isDirty ? '🟡 Belum Disimpan' : '🟢 Tersimpan'}
                 </span>
               </div>
 
@@ -378,8 +530,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Nama Lapak Jastip</label>
                   <input 
                     type="text" 
-                    value={store.name} 
-                    onChange={(e) => onUpdateStore({ ...store, name: e.target.value })}
+                    value={formData.name} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -398,10 +550,10 @@ export default function AdminPage({
 
                   <input 
                     type="date" 
-                    value={extractDateInputValue(store.deliveryDate)} 
+                    value={extractDateInputValue(formData.deliveryDate)} 
                     onChange={(e) => {
                       if (e.target.value) {
-                        onUpdateStore({ ...store, deliveryDate: formatDateIndo(e.target.value) })
+                        setFormData(prev => ({ ...prev, deliveryDate: formatDateIndo(e.target.value) }))
                       }
                     }}
                     className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
@@ -410,26 +562,26 @@ export default function AdminPage({
                   {/* Keterangan & Preset Cepat */}
                   <div className="flex items-center justify-between flex-wrap gap-1.5 pt-1 border-t border-slate-200/60 text-[11px]">
                     <span className="font-extrabold text-slate-700 truncate max-w-[180px]">
-                      {store.deliveryDate}
+                      {formData.deliveryDate}
                     </span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(0)) })}
+                        onClick={() => setFormData(prev => ({ ...prev, deliveryDate: formatDateIndo(getRelativeDateValue(0)) }))}
                         className="text-[10px] bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
                       >
                         Hari Ini
                       </button>
                       <button
                         type="button"
-                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(1)) })}
+                        onClick={() => setFormData(prev => ({ ...prev, deliveryDate: formatDateIndo(getRelativeDateValue(1)) }))}
                         className="text-[10px] bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
                       >
                         Besok
                       </button>
                       <button
                         type="button"
-                        onClick={() => onUpdateStore({ ...store, deliveryDate: formatDateIndo(getRelativeDateValue(2)) })}
+                        onClick={() => setFormData(prev => ({ ...prev, deliveryDate: formatDateIndo(getRelativeDateValue(2)) }))}
                         className="text-[10px] bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-lg transition-colors bouncy-tap"
                       >
                         Lusa
@@ -454,10 +606,10 @@ export default function AdminPage({
 
                     <input 
                       type="time" 
-                      value={extractTimeValue(store.deliveryTime)} 
+                      value={extractTimeValue(formData.deliveryTime)} 
                       onChange={(e) => {
                         if (e.target.value) {
-                          onUpdateStore({ ...store, deliveryTime: `${e.target.value} WIB` })
+                          setFormData(prev => ({ ...prev, deliveryTime: `${e.target.value} WIB` }))
                         }
                       }}
                       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
@@ -469,9 +621,9 @@ export default function AdminPage({
                         <button
                           key={t}
                           type="button"
-                          onClick={() => onUpdateStore({ ...store, deliveryTime: `${t} WIB` })}
+                          onClick={() => setFormData(prev => ({ ...prev, deliveryTime: `${t} WIB` }))}
                           className={`text-[10px] px-2 py-0.5 rounded-lg font-bold transition-all bouncy-tap ${
-                            store.deliveryTime?.includes(t)
+                            formData.deliveryTime?.includes(t)
                               ? 'bg-amber-500 text-white shadow-xs'
                               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                           }`}
@@ -496,12 +648,12 @@ export default function AdminPage({
 
                     <input 
                       type="time" 
-                      value={extractTimeValue(store.cutoffTime)} 
+                      value={extractTimeValue(formData.cutoffTime)} 
                       onChange={(e) => {
                         if (e.target.value) {
-                          const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                          const isTomorrow = formData.cutoffTime?.toLowerCase().includes('besok')
                           const prefix = isTomorrow ? 'Besok, jam ' : 'Hari ini, jam '
-                          onUpdateStore({ ...store, cutoffTime: `${prefix}${e.target.value} WIB` })
+                          setFormData(prev => ({ ...prev, cutoffTime: `${prefix}${e.target.value} WIB` }))
                         }
                       }}
                       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-brand-500 text-xs shadow-sm cursor-pointer"
@@ -515,12 +667,12 @@ export default function AdminPage({
                             key={t}
                             type="button"
                             onClick={() => {
-                              const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                              const isTomorrow = formData.cutoffTime?.toLowerCase().includes('besok')
                               const prefix = isTomorrow ? 'Besok, jam ' : 'Hari ini, jam '
-                              onUpdateStore({ ...store, cutoffTime: `${prefix}${t} WIB` })
+                              setFormData(prev => ({ ...prev, cutoffTime: `${prefix}${t} WIB` }))
                             }}
                             className={`text-[10px] px-1.5 py-0.5 rounded-lg font-bold transition-all bouncy-tap ${
-                              store.cutoffTime?.includes(t)
+                              formData.cutoffTime?.includes(t)
                                 ? 'bg-rose-500 text-white shadow-xs'
                                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                             }`}
@@ -533,15 +685,15 @@ export default function AdminPage({
                       <button
                         type="button"
                         onClick={() => {
-                          const time = extractTimeValue(store.cutoffTime)
-                          const isTomorrow = store.cutoffTime?.toLowerCase().includes('besok')
+                          const time = extractTimeValue(formData.cutoffTime)
+                          const isTomorrow = formData.cutoffTime?.toLowerCase().includes('besok')
                           const nextPrefix = isTomorrow ? 'Hari ini, jam ' : 'Besok, jam '
-                          onUpdateStore({ ...store, cutoffTime: `${nextPrefix}${time} WIB` })
+                          setFormData(prev => ({ ...prev, cutoffTime: `${nextPrefix}${time} WIB` }))
                         }}
                         className="text-[10px] font-black text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 px-2 py-0.5 rounded-lg bouncy-tap"
                         title="Klik untuk ganti antara Hari Ini atau Besok"
                       >
-                        {store.cutoffTime?.toLowerCase().includes('besok') ? 'Besok' : 'Hari Ini'}
+                        {formData.cutoffTime?.toLowerCase().includes('besok') ? 'Besok' : 'Hari Ini'}
                       </button>
                     </div>
                   </div>
@@ -552,8 +704,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Titik Ambil Makanan</label>
                   <input 
                     type="text" 
-                    value={store.pickupLocation} 
-                    onChange={(e) => onUpdateStore({ ...store, pickupLocation: e.target.value })}
+                    value={formData.pickupLocation} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, pickupLocation: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                     placeholder="Contoh: Meja Resepsionis / Pantry Lt. 3"
                   />
@@ -563,8 +715,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">No. WhatsApp Kamu</label>
                   <input 
                     type="text" 
-                    value={store.sellerPhone} 
-                    onChange={(e) => onUpdateStore({ ...store, sellerPhone: e.target.value })}
+                    value={formData.sellerPhone} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, sellerPhone: e.target.value }))}
                     placeholder="6281234567890"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
@@ -578,8 +730,8 @@ export default function AdminPage({
                   <input 
                     type="text" 
                     maxLength={4}
-                    value={store.adminPin || "1234"} 
-                    onChange={(e) => onUpdateStore({ ...store, adminPin: e.target.value })}
+                    value={formData.adminPin || "1234"} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, adminPin: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
                     className="w-20 text-center font-mono font-bold bg-slate-100 border border-slate-200 rounded-xl px-2 py-1.5 text-slate-800 focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -603,8 +755,8 @@ export default function AdminPage({
                   <label className="block text-slate-600 font-semibold mb-1">Nama Pemilik Rekening / QRIS</label>
                   <input 
                     type="text" 
-                    value={store.paymentName || store.ownerName} 
-                    onChange={(e) => onUpdateStore({ ...store, paymentName: e.target.value })}
+                    value={formData.paymentName || formData.name} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, paymentName: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
                 </div>
@@ -614,8 +766,8 @@ export default function AdminPage({
                     <label className="block text-slate-600 font-semibold mb-1">Nama Bank</label>
                     <input 
                       type="text" 
-                      value={store.bankName} 
-                      onChange={(e) => onUpdateStore({ ...store, bankName: e.target.value })}
+                      value={formData.bankName} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, bankName: e.target.value }))}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                     />
                   </div>
@@ -623,8 +775,8 @@ export default function AdminPage({
                     <label className="block text-slate-600 font-semibold mb-1">Nomor Rekening</label>
                     <input 
                       type="text" 
-                      value={store.bankNumber} 
-                      onChange={(e) => onUpdateStore({ ...store, bankNumber: e.target.value })}
+                      value={formData.bankNumber} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, bankNumber: e.target.value }))}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-brand-500 text-xs"
                     />
                   </div>
@@ -714,6 +866,57 @@ export default function AdminPage({
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* BAR SIMPAN PERUBAHAN PENGATURAN LAPAK */}
+          <div className={`p-4 md:p-5 rounded-3xl border shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 transition-all ${
+            isDirty 
+              ? 'bg-amber-50/70 border-amber-200/90 shadow-amber-100/50' 
+              : 'bg-white border-slate-200/90'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-sm ${
+                isDirty ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-700'
+              }`}>
+                {isDirty ? '⚠️' : '✅'}
+              </div>
+              <div>
+                <h5 className="font-extrabold text-xs text-slate-800">
+                  {isDirty ? 'Ada Perubahan Pengaturan yang Belum Disimpan' : 'Semua Pengaturan Lapak Sudah Tersimpan'}
+                </h5>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {isDirty 
+                    ? 'Klik Simpan Perubahan agar jam kedatangan, cut-off, dan rekening diterapkan ke pembeli.' 
+                    : 'Pengaturan lapak sudah mutakhir dan sinkron dengan database cloud.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {isDirty && (
+                <button
+                  type="button"
+                  onClick={handleResetSettings}
+                  className="flex-1 sm:flex-none text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-4 py-2.5 rounded-xl transition-all bouncy-tap flex items-center justify-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Batal</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                disabled={!isDirty || isSaving}
+                className={`flex-1 sm:flex-none text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all ${
+                  isDirty
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-orange-200 bouncy-tap'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                <Save className="w-4 h-4" />
+                <span>{isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+              </button>
             </div>
           </div>
 
@@ -896,6 +1099,29 @@ export default function AdminPage({
                 ))
               )}
             </div>
+
+            {/* Quick Action WA Buttons */}
+            {storeOrders.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={handleCopyKitchenList}
+                  className="flex-1 sm:flex-none text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 bouncy-tap"
+                >
+                  {copiedKitchen ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                  <span>{copiedKitchen ? 'List Dapur Tersalin!' : '📋 Salin List Dapur (WA)'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyArrivedBroadcast}
+                  className="flex-1 sm:flex-none text-xs font-extrabold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 bouncy-tap"
+                >
+                  {copiedArrived ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Truck className="w-3.5 h-3.5 text-emerald-600" />}
+                  <span>{copiedArrived ? 'Pengumuman Tersalin!' : '📢 Kabari: Makanan Sudah Tiba!'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* List Pemesan & Deteksi Lunas */}
@@ -1107,6 +1333,39 @@ export default function AdminPage({
               </a>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING ACTION BAR: MUNCUL JIKA ADA EDITAN YANG BELUM DISIMPAN */}
+      {isDirty && (
+        <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-8 max-w-sm z-50 bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-3 animate-in slide-in-from-bottom duration-300">
+          <div className="min-w-0">
+            <span className="text-xs font-black block truncate flex items-center gap-1.5 text-amber-300">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              Ada Perubahan Belum Disimpan
+            </span>
+            <span className="text-[10px] text-slate-300 block truncate">
+              Klik Simpan untuk update lapakmu
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleResetSettings}
+              className="text-xs font-bold px-2.5 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              disabled={isSaving}
+              className="text-xs font-black bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 bouncy-tap"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
+            </button>
           </div>
         </div>
       )}
