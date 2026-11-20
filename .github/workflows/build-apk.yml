@@ -48,12 +48,11 @@ jobs:
           mkdir -p android/app/src/main/assets/public
           cp -r dist/* android/app/src/main/assets/public/
           cp capacitor.config.json android/app/src/main/assets/capacitor.config.json
-          npx cap copy android || true
 
       - name: Compile Android APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace || (echo "=== GRADLE ERROR DETAILS ===" && ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -n 120 && exit 1)
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
