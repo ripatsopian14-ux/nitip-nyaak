@@ -56,10 +56,34 @@ jobs:
           cp -r dist/* android/app/src/main/assets/public/
           cp capacitor.config.json android/app/src/main/assets/capacitor.config.json
 
-      - name: Compile Android APK
+      - name: Ensure Release Keystore Exists
+        run: |
+          if [ ! -f android/app/nitip-nyaak.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore android/app/nitip-nyaak.keystore \
+              -alias nitipnyaak \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass nitipnyaak123 \
+              -keypass nitipnyaak123 \
+              -dname "CN=Nitip Nyaak, OU=Mobile App, O=Nitip Nyaak Community, L=Jakarta, ST=DKI Jakarta, C=ID"
+          fi
+
+      - name: Persist Keystore to Repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain android/app/nitip-nyaak.keystore | grep -q nitip-nyaak.keystore; then
+            git add android/app/nitip-nyaak.keystore
+            git commit -m "chore: save release signing keystore [skip ci]"
+            git push origin HEAD:${{ github.ref_name }} || true
+          fi
+
+      - name: Compile Android APK (Release Mode)
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -72,7 +96,7 @@ jobs:
       - name: Prepare Direct APK
         run: |
           mkdir -p release-apk
-          cp android/app/build/outputs/apk/debug/*.apk release-apk/nitip-nyaak.apk
+          cp android/app/build/outputs/apk/release/*.apk release-apk/nitip-nyaak.apk
 
       - name: Publish Direct APK to GitHub Release
         if: github.ref == 'refs/heads/main'
