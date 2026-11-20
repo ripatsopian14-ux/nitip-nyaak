@@ -29,7 +29,7 @@ import {
 import { compressImage } from '../utils/imageHelper'
 import { playOrderChime } from '../utils/soundHelper'
 import { getStoreStatus, getMenuAvailableQuota } from '../utils/storeHelper'
-import { toWhatsAppNumber, buildWhatsAppUrl } from '../utils/phoneHelper'
+import { toWhatsAppNumber } from '../utils/phoneHelper'
 import { 
   extractDateInputValue, 
   extractTimeValue, 
@@ -724,16 +724,9 @@ export default function AdminPage({
                       <span>No. WhatsApp Kamu</span>
                     </label>
                     {formData.sellerPhone && (
-                      <a 
-                        href={buildWhatsAppUrl(formData.sellerPhone, `Halo dari Lapak ${formData.name || store.name}! 👋`)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 transition-all bouncy-tap"
-                        title="Klik untuk tes apakah link langsung membuka WhatsApp kamu"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        <span>Tes Link WA ↗</span>
-                      </a>
+                      <span className="font-mono text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                        WA: +{toWhatsAppNumber(formData.sellerPhone)}
+                      </span>
                     )}
                   </div>
                   <input 
@@ -748,14 +741,9 @@ export default function AdminPage({
                     placeholder="Bisa ketik 08xx atau 628xx..."
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-mono font-medium focus:outline-none focus:border-brand-500 text-xs"
                   />
-                  <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
-                    <span>Bebas ketik 08xx (otomatis disesuaikan ke format WA)</span>
-                    {formData.sellerPhone && (
-                      <span className="font-mono text-emerald-600 font-bold">
-                        WA: +{toWhatsAppNumber(formData.sellerPhone)}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    * Bebas ketik 08xx atau 628xx (otomatis disesuaikan ke format WhatsApp).
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
