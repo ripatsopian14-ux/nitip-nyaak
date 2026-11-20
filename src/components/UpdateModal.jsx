@@ -1,5 +1,6 @@
 import React from 'react'
-import { Sparkles, Download, X, CheckCircle, ArrowRight } from 'lucide-react'
+import { Sparkles, Download, X, CheckCircle, ArrowRight, RefreshCw } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 
 export default function UpdateModal({ 
   isOpen, 
@@ -8,11 +9,21 @@ export default function UpdateModal({
 }) {
   if (!isOpen || !updateInfo) return null
 
-  const handleDownload = () => {
-    if (updateInfo.downloadUrl) {
-      window.open(updateInfo.downloadUrl, '_blank')
+  const isNative = Capacitor.isNativePlatform()
+
+  const handleAction = () => {
+    if (isNative) {
+      if (updateInfo.downloadUrl) {
+        window.open(updateInfo.downloadUrl, '_blank')
+      }
+      onClose()
+    } else {
+      try {
+        localStorage.clear()
+        sessionStorage.clear()
+      } catch (_) {}
+      window.location.href = window.location.origin + '?v=' + Date.now()
     }
-    onClose()
   }
 
   return (
@@ -69,12 +80,22 @@ export default function UpdateModal({
         {/* Action Buttons */}
         <div className="space-y-2 pt-1">
           <button
-            onClick={handleDownload}
+            onClick={handleAction}
             className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:opacity-95 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 bouncy-tap"
           >
-            <Download className="w-4 h-4" />
-            <span>Unduh Update APK Sekarang</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            {isNative ? (
+              <>
+                <Download className="w-4 h-4" />
+                <span>Unduh Update APK Sekarang</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                <span>Muat Ulang Versi Baru Sekarang</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
           </button>
           <button
             onClick={onClose}

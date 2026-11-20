@@ -80,6 +80,19 @@ export default function App() {
 
   // Load Data on Mount
   useEffect(() => {
+    // Clear legacy cache and keys
+    try {
+      const legacyKeys = [
+        'nitip_nyaak_v3_clean_stores',
+        'nitip_nyaak_v3_clean_menus',
+        'nitip_nyaak_v3_clean_orders',
+        'nitip_nyaak_stores',
+        'nitip_nyaak_menus',
+        'nitip_nyaak_clean_stores'
+      ]
+      legacyKeys.forEach(k => localStorage.removeItem(k))
+    } catch (_) {}
+
     async function init() {
       setLoading(true)
       const [sList, mList, oList] = await Promise.all([

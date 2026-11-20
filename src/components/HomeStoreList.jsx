@@ -14,7 +14,8 @@ import {
   Share2, 
   QrCode, 
   ChefHat, 
-  CheckCircle2 
+  CheckCircle2,
+  RefreshCw 
 } from 'lucide-react'
 import { getStoreStatus } from '../utils/storeHelper'
 
@@ -187,24 +188,60 @@ export default function HomeStoreList({
         /* KONDISI JIKA SUDAH ADA LAPAK */
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Store className="w-5 h-5 text-brand-600" />
-                <span>Daftar Lapak Jastip yang Lagi Buka ({filteredStores.length})</span>
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Pilih salah satu lapak untuk jajan</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-brand-600" />
+                  <span>Daftar Lapak Jastip yang Lagi Buka ({filteredStores.length})</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Pilih salah satu lapak untuk jajan</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.clear()
+                    sessionStorage.clear()
+                  } catch (_) {}
+                  window.location.href = window.location.origin + '?t=' + Date.now()
+                }}
+                className="sm:hidden text-[11px] font-bold text-slate-600 hover:text-brand-600 bg-slate-100 hover:bg-brand-50 border border-slate-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors bouncy-tap"
+                title="Segarkan data lapak terbaru dari server"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Segarkan</span>
+              </button>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari lapak jastip..."
-                className="w-full bg-white border border-slate-200 text-xs rounded-2xl pl-9 pr-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-sm"
-              />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            {/* Search Input & Desktop Refresh Button */}
+            <div className="flex items-center gap-2">
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari lapak jastip..."
+                  className="w-full bg-white border border-slate-200 text-xs rounded-2xl pl-9 pr-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-sm"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.clear()
+                    sessionStorage.clear()
+                  } catch (_) {}
+                  window.location.href = window.location.origin + '?t=' + Date.now()
+                }}
+                className="hidden sm:flex text-xs font-bold text-slate-600 hover:text-brand-600 bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-200 px-3 py-2 rounded-2xl items-center gap-1.5 transition-colors shadow-sm bouncy-tap"
+                title="Segarkan data lapak terbaru dari server"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Segarkan</span>
+              </button>
             </div>
           </div>
 
