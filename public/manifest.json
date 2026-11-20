@@ -1,0 +1,18 @@
+{
+  "name": "Nitip Nyaak! - Jastip Makanan",
+  "short_name": "Nitip Nyaak",
+  "description": "Platform Jastip Makanan Komunitas & Kantor Anti-Ribet",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFAF7",
+  "theme_color": "#EA580C",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

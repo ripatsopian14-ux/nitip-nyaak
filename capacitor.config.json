@@ -1,0 +1,8 @@
+{
+  "appId": "com.nitipnyaak.app",
+  "appName": "Nitip Nyaak!",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
