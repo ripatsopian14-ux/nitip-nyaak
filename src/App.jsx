@@ -25,6 +25,7 @@ import {
   supabase,
   isSupabaseConfigured
 } from './services/storage'
+import { getStoreStatus, getMenuAvailableQuota } from './utils/storeHelper'
 
 export default function App() {
   const [stores, setStores] = useState([])
@@ -182,6 +183,24 @@ export default function App() {
 
   // Cart Operations
   const handleUpdateQty = (id, delta) => {
+    if (delta > 0 && activeStore) {
+      const status = getStoreStatus(activeStore)
+      if (!status.canOrder) {
+        alert(`Pemesanan tidak dapat ditambah karena lapak sedang ditutup (${status.label}).`)
+        return
+      }
+
+      const menuItem = menus.find(m => m.id === id)
+      if (menuItem) {
+        const available = getMenuAvailableQuota(menuItem, orders, activeStore.id)
+        const currentInCart = cart[id] || 0
+        if (currentInCart >= available) {
+          alert(`Maaf, porsi untuk "${menuItem.name}" tersisa ${available} porsi.`)
+          return
+        }
+      }
+    }
+
     setCart(prev => {
       const current = prev[id] || 0
       const next = current + delta
@@ -192,6 +211,17 @@ export default function App() {
       }
       return { ...prev, [id]: next }
     })
+  }
+
+  const handleOpenCheckout = () => {
+    if (activeStore) {
+      const status = getStoreStatus(activeStore)
+      if (!status.canOrder) {
+        alert(`Pemesanan tidak dapat diproses karena lapak sedang ditutup (${status.label}).`)
+        return
+      }
+    }
+    setIsCheckoutOpen(true)
   }
 
   // Submit Order
@@ -431,8 +461,9 @@ export default function App() {
             store={activeStore}
             menus={menus}
             cart={cart}
+            orders={orders}
             onUpdateQty={handleUpdateQty}
-            onOpenCheckout={() => setIsCheckoutOpen(true)}
+            onOpenCheckout={handleOpenCheckout}
             onBackToDirectory={handleBackToDirectory}
           />
         ) : (

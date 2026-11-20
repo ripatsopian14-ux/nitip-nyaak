@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { compressImage } from '../utils/imageHelper'
 import { playOrderChime } from '../utils/soundHelper'
+import { getStoreStatus, getMenuAvailableQuota } from '../utils/storeHelper'
 
 export default function AdminPage({ 
   store, 
@@ -263,6 +264,67 @@ export default function AdminPage({
       {activeSubTab === 'setting' && (
         <div className="space-y-5">
           
+          {/* SAKLAR MANUAL BUKA / TUTUP PO */}
+          <div className={`p-4 md:p-5 rounded-3xl border transition-all ${
+            store.isOpen !== false 
+              ? 'bg-emerald-50/80 border-emerald-200/90 shadow-sm shadow-emerald-100/50' 
+              : 'bg-rose-50/80 border-rose-200/90 shadow-sm shadow-rose-100/50'
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-sm ${
+                  store.isOpen !== false ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                }`}>
+                  {store.isOpen !== false ? '🟢' : '🔴'}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-black text-sm text-slate-900">
+                      Status Lapak: {store.isOpen !== false ? 'PO Sedang DIBUKA' : 'PO Sedang DITUTUP'}
+                    </h4>
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                      store.isOpen !== false 
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60' 
+                        : 'bg-rose-100 text-rose-800 border border-rose-300/60'
+                    }`}>
+                      {store.isOpen !== false ? 'Menerima Pesanan' : 'Pesanan Dikunci'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {store.isOpen !== false 
+                      ? 'Pembeli bisa memilih menu dan checkout pesanan dengan lancar.' 
+                      : 'Pemesanan dikunci sementara. Pembeli hanya bisa melihat menu tanpa bisa memesan.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState = store.isOpen === false ? true : false
+                  onUpdateStore({ ...store, isOpen: nextState })
+                }}
+                className={`px-4 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-sm bouncy-tap transition-all ${
+                  store.isOpen !== false
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                }`}
+              >
+                {store.isOpen !== false ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    <span>Tutup PO Sekarang</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-white"></span>
+                    <span>Buka PO Sekarang</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Card Direct Link Share */}
           <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 p-5 md:p-6 rounded-3xl text-white shadow-xl shadow-orange-100/60 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -545,26 +607,44 @@ export default function AdminPage({
                   </button>
                 </div>
               ) : (
-                storeMenus.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-2xl shrink-0">{item.icon}</span>
-                      <div className="min-w-0">
-                        <span className="font-bold text-slate-800 text-xs block truncate">{item.name}</span>
-                        <span className="text-[11px] text-slate-500">
-                          Rp {item.price.toLocaleString('id-ID')} • Kuota: {item.quota} porsi
-                        </span>
+                storeMenus.map(item => {
+                  const available = getMenuAvailableQuota(item, storeOrders, store.id)
+                  const quotaMax = Number(item.quota) || 10
+                  const sold = Math.max(0, quotaMax - available)
+                  const isSoldOut = available <= 0
+
+                  return (
+                    <div key={item.id} className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-2xl shrink-0">{item.icon}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-800 text-xs truncate">{item.name}</span>
+                            {isSoldOut ? (
+                              <span className="text-[9px] font-black text-rose-700 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">
+                                Habis / Sold Out
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                Sisa {available} porsi
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-slate-500 mt-0.5 block">
+                            Rp {item.price.toLocaleString('id-ID')} • Terjual {sold}/{quotaMax} porsi
+                          </span>
+                        </div>
                       </div>
+                      <button 
+                        onClick={() => onDeleteMenu(item.id)}
+                        className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 shrink-0 bouncy-tap"
+                        title="Hapus Menu"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => onDeleteMenu(item.id)}
-                      className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 shrink-0 bouncy-tap"
-                      title="Hapus Menu"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

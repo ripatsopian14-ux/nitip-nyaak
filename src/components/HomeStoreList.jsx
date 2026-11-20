@@ -8,14 +8,15 @@ import {
   ArrowRight, 
   Search, 
   PlusCircle, 
-  Lock,
-  Sparkles,
-  HelpCircle,
-  Share2,
-  QrCode,
-  ChefHat,
-  CheckCircle2
+  Lock, 
+  Sparkles, 
+  HelpCircle, 
+  Share2, 
+  QrCode, 
+  ChefHat, 
+  CheckCircle2 
 } from 'lucide-react'
+import { getStoreStatus } from '../utils/storeHelper'
 
 export default function HomeStoreList({ 
   stores, 
@@ -33,6 +34,14 @@ export default function HomeStoreList({
     store.ownerName.toLowerCase().includes(search.toLowerCase()) ||
     store.category.toLowerCase().includes(search.toLowerCase())
   )
+
+  const sortedFilteredStores = [...filteredStores].sort((a, b) => {
+    const statusA = getStoreStatus(a)
+    const statusB = getStoreStatus(b)
+    if (statusA.canOrder && !statusB.canOrder) return -1
+    if (!statusA.canOrder && statusB.canOrder) return 1
+    return 0
+  })
 
   return (
     <div className="space-y-6">
@@ -200,14 +209,17 @@ export default function HomeStoreList({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredStores.map(store => {
+            {sortedFilteredStores.map(store => {
               const storeMenus = menus.filter(m => m.storeId === store.id)
+              const status = getStoreStatus(store)
 
               return (
                 <div 
-                  key={store.id}
+                  key={store.id} 
                   onClick={() => onSelectStore(store)}
-                  className="bg-white border border-slate-200/90 hover:border-brand-400 rounded-3xl p-5 transition-all shadow-sm hover:shadow-md cursor-pointer group bouncy-tap flex flex-col justify-between space-y-4"
+                  className={`bg-white border rounded-3xl p-5 transition-all shadow-sm hover:shadow-md cursor-pointer group bouncy-tap flex flex-col justify-between space-y-4 ${
+                    status.canOrder ? 'border-slate-200/90 hover:border-brand-400' : 'border-slate-200/60 opacity-90'
+                  }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
@@ -225,9 +237,9 @@ export default function HomeStoreList({
                         </div>
                       </div>
 
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full shrink-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Buka PO</span>
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0 border ${status.badgeClass}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${status.dotClass}`}></span>
+                        <span>{status.label}</span>
                       </span>
                     </div>
 
