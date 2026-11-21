@@ -14,13 +14,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ||
                     import.meta.env.SUPABASE_URL || 
                     import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
                     customConfig.url || 
-                    'https://ylcxnvafhxjgyfquwnuz.supabase.co'
+                    'https://fnzoeivyijooqltqprkr.supabase.co'
 
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
                        import.meta.env.SUPABASE_ANON_KEY || 
                        import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
                        customConfig.key || 
-                       'sb_publishable_CzFv_wCR7u9oRUNtxcP9Ag_ZgRSbCLr'
+                       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuem9laXZ5aWpvb3FsdHFwcmtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwNTczMzEsImV4cCI6MjExMDYzMzMzMX0.D3oJTBVqhlcEmt0Un_MR4lBHLnC30KonbU3W1QvWND0'
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
