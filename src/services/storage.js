@@ -448,32 +448,59 @@ export async function apiGetMenus() {
 
 export async function apiSaveMenu(menu) {
   const current = getLocalMenus()
-  const newMenu = { id: Date.now(), ...menu }
-  const updated = [...current, newMenu]
-  saveLocalMenus(updated)
+  let updated
+  const existsIndex = current.findIndex(m => m.id === menu.id)
 
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase.from('menu_items').insert({
-        store_id: menu.storeId,
-        name: menu.name,
-        description: menu.desc,
-        price: menu.price,
-        quota: menu.quota,
-        icon: menu.icon,
-        badge: menu.badge
-      }).select().single()
+  if (existsIndex >= 0) {
+    const updatedItem = { ...current[existsIndex], ...menu }
+    updated = [...current]
+    updated[existsIndex] = updatedItem
+    saveLocalMenus(updated)
 
-      if (error) {
-        console.error("Supabase menu insert error:", error)
-      } else if (data) {
-        newMenu.id = data.id
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.from('menu_items').update({
+          name: menu.name,
+          description: menu.desc,
+          price: menu.price,
+          quota: menu.quota,
+          icon: menu.icon,
+          badge: menu.badge
+        }).eq('id', menu.id)
+        if (error) console.error("Supabase menu update error:", error)
+      } catch (e) {
+        console.warn("Supabase menu update error:", e)
       }
-    } catch (e) {
-      console.warn("Supabase menu insert error:", e)
     }
+    return updated
+  } else {
+    const newMenu = { id: Date.now(), ...menu }
+    updated = [...current, newMenu]
+    saveLocalMenus(updated)
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('menu_items').insert({
+          store_id: menu.storeId,
+          name: menu.name,
+          description: menu.desc,
+          price: menu.price,
+          quota: menu.quota,
+          icon: menu.icon,
+          badge: menu.badge
+        }).select().single()
+
+        if (error) {
+          console.error("Supabase menu insert error:", error)
+        } else if (data) {
+          newMenu.id = data.id
+        }
+      } catch (e) {
+        console.warn("Supabase menu insert error:", e)
+      }
+    }
+    return updated
   }
-  return updated
 }
 
 export async function apiDeleteMenu(id) {

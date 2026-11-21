@@ -47,6 +47,7 @@ export default function App() {
   const [cart, setCart] = useState({})
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
+  const [menuToEdit, setMenuToEdit] = useState(null)
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
   const [isRegisterStoreOpen, setIsRegisterStoreOpen] = useState(false)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false)
@@ -59,7 +60,7 @@ export default function App() {
     fetch('/version.json?t=' + Date.now())
       .then(res => res.json())
       .then(data => {
-        const CURRENT_APP_VERSION = '1.0.0'
+        const CURRENT_APP_VERSION = '1.2.0'
         if (data.version && data.version !== CURRENT_APP_VERSION) {
           const dismissed = localStorage.getItem('nitip_dismissed_version')
           if (dismissed !== data.version) {
@@ -463,7 +464,14 @@ export default function App() {
             onUpdateStore={handleUpdateStore}
             menus={menus}
             onDeleteMenu={handleDeleteMenu}
-            onOpenAddMenu={() => setIsAddMenuOpen(true)}
+            onOpenAddMenu={() => {
+              setMenuToEdit(null)
+              setIsAddMenuOpen(true)
+            }}
+            onOpenEditMenu={(item) => {
+              setMenuToEdit(item)
+              setIsAddMenuOpen(true)
+            }}
             orders={orders}
             onTogglePayment={handleTogglePayment}
             onExitToBuyer={() => handleSelectStore(adminStore)}
@@ -557,9 +565,13 @@ export default function App() {
 
       <AddMenuModal 
         isOpen={isAddMenuOpen}
-        onClose={() => setIsAddMenuOpen(false)}
+        onClose={() => {
+          setIsAddMenuOpen(false)
+          setMenuToEdit(null)
+        }}
         store={adminStore}
-        onAddMenu={handleAddMenu}
+        onSaveMenu={handleAddMenu}
+        menuToEdit={menuToEdit}
       />
 
       <AdminLoginModal 

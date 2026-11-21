@@ -1,13 +1,37 @@
-import React, { useState } from 'react'
-import { X, Plus, UtensilsCrossed } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, Plus, UtensilsCrossed, Edit2, Save } from 'lucide-react'
 
-export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
+export default function AddMenuModal({ 
+  isOpen, 
+  onClose, 
+  store, 
+  onSaveMenu, 
+  menuToEdit = null 
+}) {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [quota, setQuota] = useState('10')
   const [icon, setIcon] = useState('🍱')
   const [badge, setBadge] = useState('Menu Baru ✨')
   const [desc, setDesc] = useState('')
+
+  useEffect(() => {
+    if (menuToEdit) {
+      setName(menuToEdit.name || '')
+      setPrice(menuToEdit.price !== undefined ? String(menuToEdit.price) : '')
+      setQuota(menuToEdit.quota !== undefined ? String(menuToEdit.quota) : '10')
+      setIcon(menuToEdit.icon || '🍱')
+      setBadge(menuToEdit.badge || '')
+      setDesc(menuToEdit.desc || '')
+    } else {
+      setName('')
+      setPrice('')
+      setQuota('10')
+      setIcon('🍱')
+      setBadge('Menu Baru ✨')
+      setDesc('')
+    }
+  }, [menuToEdit, isOpen])
 
   if (!isOpen || !store) return null
 
@@ -18,7 +42,8 @@ export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
       return
     }
 
-    onAddMenu({
+    onSaveMenu({
+      ...(menuToEdit ? { id: menuToEdit.id } : {}),
       storeId: store.id,
       name: name.trim(),
       price: parseInt(price) || 15000,
@@ -44,8 +69,12 @@ export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div>
             <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-              <UtensilsCrossed className="w-4 h-4 text-brand-600" />
-              <span>Tambah Menu Jastip Baru</span>
+              {menuToEdit ? (
+                <Edit2 className="w-4 h-4 text-brand-600" />
+              ) : (
+                <UtensilsCrossed className="w-4 h-4 text-brand-600" />
+              )}
+              <span>{menuToEdit ? 'Edit Menu Jastip' : 'Tambah Menu Jastip Baru'}</span>
             </h3>
             <span className="text-[10px] text-slate-400">Untuk {store.name}</span>
           </div>
@@ -125,7 +154,7 @@ export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
               type="text" 
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              placeholder="Gurih mantap, cuko kental pedas manis" 
+              placeholder="Gurih mantap, porsi pas kenyang" 
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 text-xs font-medium"
             />
           </div>
@@ -135,8 +164,8 @@ export default function AddMenuModal({ isOpen, onClose, store, onAddMenu }) {
               type="submit" 
               className="w-full bg-brand-600 hover:bg-brand-500 text-white font-extrabold py-3 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-brand-200 bouncy-tap"
             >
-              <Plus className="w-4 h-4" />
-              <span>Simpan & Buka Menu</span>
+              {menuToEdit ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{menuToEdit ? 'Simpan Perubahan Menu' : 'Simpan & Buka Menu'}</span>
             </button>
           </div>
         </form>

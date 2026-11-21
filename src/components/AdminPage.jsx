@@ -24,7 +24,8 @@ import {
   RotateCcw,
   AlertCircle,
   Truck,
-  Phone
+  Phone,
+  Edit2
 } from 'lucide-react'
 import { compressImage } from '../utils/imageHelper'
 import { playOrderChime } from '../utils/soundHelper'
@@ -44,6 +45,7 @@ export default function AdminPage({
   menus, 
   onDeleteMenu, 
   onOpenAddMenu, 
+  onOpenEditMenu,
   orders, 
   onTogglePayment,
   onExitToBuyer,
@@ -1040,13 +1042,22 @@ export default function AdminPage({
                           </span>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => onDeleteMenu(item.id)}
-                        className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 shrink-0 bouncy-tap"
-                        title="Hapus Menu"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button 
+                          onClick={() => onOpenEditMenu ? onOpenEditMenu(item) : onOpenAddMenu(item)}
+                          className="text-brand-600 hover:text-brand-800 text-xs font-bold p-1.5 rounded-lg hover:bg-brand-50 bouncy-tap"
+                          title="Edit Menu & Kuota"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => onDeleteMenu(item.id)}
+                          className="text-rose-500 hover:text-rose-700 text-xs font-bold p-1.5 rounded-lg hover:bg-rose-50 bouncy-tap"
+                          title="Hapus Menu"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )
                 })
