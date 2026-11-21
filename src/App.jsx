@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Capacitor } from '@capacitor/core'
 import HomeStoreList from './components/HomeStoreList'
+import LandingPageHybrid from './components/LandingPageHybrid'
 import BuyerPage from './components/BuyerPage'
 import AdminPage from './components/AdminPage'
 import CheckoutModal from './components/CheckoutModal'
@@ -11,6 +13,12 @@ import FeedbackModal from './components/FeedbackModal'
 import BottomNav from './components/BottomNav'
 import UpdateModal from './components/UpdateModal'
 import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare } from 'lucide-react'
+
+// =========================================================================
+// SAKLAR TOGGLE LANDING PAGE HYBRID
+// Ubah ke false jika ingin menonaktifkan landing page dan kembali ke tampilan awal polos
+// =========================================================================
+export const ENABLE_HYBRID_LANDING = true
 import { 
   apiGetStores,
   apiSaveStore,
@@ -456,7 +464,9 @@ export default function App() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-8 pb-28 md:pb-8">
+      <main className={`flex-1 w-full mx-auto px-4 py-6 md:py-8 pb-28 md:pb-8 ${
+        viewMode === 'directory' ? 'max-w-5xl' : 'max-w-4xl'
+      }`}>
         
         {viewMode === 'admin' && adminStore ? (
           <AdminPage 
@@ -486,6 +496,15 @@ export default function App() {
             onUpdateQty={handleUpdateQty}
             onOpenCheckout={handleOpenCheckout}
             onBackToDirectory={handleBackToDirectory}
+          />
+        ) : (ENABLE_HYBRID_LANDING && !Capacitor.isNativePlatform()) ? (
+          <LandingPageHybrid 
+            stores={stores}
+            menus={menus}
+            onSelectStore={handleSelectStore}
+            onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
+            onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
+            onOpenFeedback={() => setIsFeedbackOpen(true)}
           />
         ) : (
           <HomeStoreList 
