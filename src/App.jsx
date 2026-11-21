@@ -12,7 +12,7 @@ import CloudConfigModal from './components/CloudConfigModal'
 import FeedbackModal from './components/FeedbackModal'
 import BottomNav from './components/BottomNav'
 import UpdateModal from './components/UpdateModal'
-import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare } from 'lucide-react'
+import { PlusCircle, Lock, Cloud, CloudOff, MessageSquare, HelpCircle, ArrowRight } from 'lucide-react'
 
 // =========================================================================
 // SAKLAR TOGGLE LANDING PAGE HYBRID
@@ -62,6 +62,29 @@ export default function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [updateInfo, setUpdateInfo] = useState(null)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+
+  // Smart Onboarding (Opsi 1): Pengunjung baru melihat landing page edukasi, kunjungan berikutnya langsung mode lapak
+  const [showLandingEdu, setShowLandingEdu] = useState(() => {
+    if (Capacitor.isNativePlatform() || !ENABLE_HYBRID_LANDING) return false
+    try {
+      const seen = localStorage.getItem('nitip_has_seen_landing')
+      return seen !== 'true'
+    } catch (_) {
+      return true
+    }
+  })
+
+  const markLandingSeen = () => {
+    try {
+      localStorage.setItem('nitip_has_seen_landing', 'true')
+    } catch (_) {}
+    setShowLandingEdu(false)
+  }
+
+  const handleOpenLandingEdu = () => {
+    setShowLandingEdu(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // In-App Update Checker
   useEffect(() => {
@@ -287,6 +310,7 @@ export default function App() {
 
   // Navigation handlers
   const handleSelectStore = (store) => {
+    markLandingSeen()
     setActiveStore(store)
     setViewMode('buyer')
     setCart({})
@@ -417,8 +441,35 @@ export default function App() {
 
             {viewMode === 'directory' ? (
               <>
+                {/* Tombol Pintar Landing Page / Mode Lapak */}
+                {ENABLE_HYBRID_LANDING && !Capacitor.isNativePlatform() && (
+                  showLandingEdu ? (
+                    <button
+                      onClick={markLandingSeen}
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap"
+                      title="Lewati landing page dan tampilkan daftar lapak"
+                    >
+                      <span className="hidden sm:inline">Langsung ke Lapak</span>
+                      <span className="sm:hidden">Lapak</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleOpenLandingEdu}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 bouncy-tap"
+                      title="Buka panduan & info aplikasi"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="hidden sm:inline">Panduan & Info</span>
+                    </button>
+                  )
+                )}
+
                 <button
-                  onClick={() => setIsRegisterStoreOpen(true)}
+                  onClick={() => {
+                    markLandingSeen()
+                    setIsRegisterStoreOpen(true)
+                  }}
                   className="hidden sm:flex bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm shadow-brand-200 items-center gap-1.5 bouncy-tap"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
@@ -497,14 +548,21 @@ export default function App() {
             onOpenCheckout={handleOpenCheckout}
             onBackToDirectory={handleBackToDirectory}
           />
-        ) : (ENABLE_HYBRID_LANDING && !Capacitor.isNativePlatform()) ? (
+        ) : (ENABLE_HYBRID_LANDING && !Capacitor.isNativePlatform() && showLandingEdu) ? (
           <LandingPageHybrid 
             stores={stores}
             menus={menus}
-            onSelectStore={handleSelectStore}
-            onOpenRegisterStore={() => setIsRegisterStoreOpen(true)}
+            onSelectStore={(store) => {
+              markLandingSeen()
+              handleSelectStore(store)
+            }}
+            onOpenRegisterStore={() => {
+              markLandingSeen()
+              setIsRegisterStoreOpen(true)
+            }}
             onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
             onOpenFeedback={() => setIsFeedbackOpen(true)}
+            onSkipLanding={markLandingSeen}
           />
         ) : (
           <HomeStoreList 
@@ -559,6 +617,17 @@ export default function App() {
           >
             Cek Update APK
           </button>
+          {ENABLE_HYBRID_LANDING && !Capacitor.isNativePlatform() && (
+            <>
+              {' • '}
+              <button 
+                onClick={handleOpenLandingEdu}
+                className="text-slate-500 hover:text-brand-600 font-medium underline"
+              >
+                Panduan & Edukasi
+              </button>
+            </>
+          )}
         </p>
       </footer>
 

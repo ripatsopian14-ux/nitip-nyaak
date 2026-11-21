@@ -23,7 +23,8 @@ export default function LandingPageHybrid({
   onSelectStore,
   onOpenRegisterStore,
   onOpenAdminLogin,
-  onOpenFeedback
+  onOpenFeedback,
+  onSkipLanding
 }) {
   const [search, setSearch] = useState('')
 
@@ -76,6 +77,17 @@ export default function LandingPageHybrid({
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>Buka Lapak Gratis</span>
           </button>
+
+          {onSkipLanding && (
+            <button
+              onClick={onSkipLanding}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-3 rounded-2xl shadow-2xs transition-transform active:scale-95 flex items-center gap-1.5"
+              title="Lewati landing page dan tampilkan daftar lapak langsung"
+            >
+              <span>Langsung ke Menu Lapak</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+            </button>
+          )}
         </div>
 
         {/* 4 Value Props Grid (4 Kolom Desktop / 2 Kolom Mobile) */}
